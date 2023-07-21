@@ -1,14 +1,21 @@
 package com.devoceanyoung.greendev.domain.auth.domain;
+import java.security.Provider;
 import java.util.Map;
 
+import org.springframework.security.oauth2.core.user.OAuth2User;
 
+import com.devoceanyoung.greendev.domain.member.domain.ProviderType;
 
 import lombok.AllArgsConstructor;
 
 @AllArgsConstructor
 public class GoogleUserInfo implements OAuth2UserInfo {
 
-	private Map<String, Object> attributes;
+	private final Map<String, Object> attributes;
+
+	public GoogleUserInfo(OAuth2User oAuth2User) {
+		this.attributes = oAuth2User.getAttributes();
+	}
 
 	@Override
 	public String getProviderId() {
@@ -16,8 +23,8 @@ public class GoogleUserInfo implements OAuth2UserInfo {
 	}
 
 	@Override
-	public String getProvider() {
-		return "google";
+	public ProviderType getProvider() {
+		return ProviderType.GOOGLE;
 	}
 
 	@Override
@@ -31,7 +38,7 @@ public class GoogleUserInfo implements OAuth2UserInfo {
 	}
 	@Override
 	public String getProfileImageUrl(){
-		return (String) ((Map) attributes.get("properties")).get("picture");
+		return (String) attributes.get("picture");
 	}
 
 
