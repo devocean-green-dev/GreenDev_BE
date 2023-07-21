@@ -17,6 +17,7 @@ import org.springframework.security.web.authentication.SimpleUrlAuthenticationSu
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import com.devoceanyoung.greendev.domain.auth.domain.PrincipalDetails;
 import com.devoceanyoung.greendev.domain.member.domain.ProviderType;
 import com.devoceanyoung.greendev.global.jwt.JwtProvider;
 import com.devoceanyoung.greendev.global.redis.RedisService;
@@ -35,13 +36,22 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 	public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
 		Authentication authentication) throws IOException {
 
-		DefaultOAuth2User principal = (DefaultOAuth2User) authentication.getPrincipal();
+		//DefaultOAuth2User principal = (DefaultOAuth2User) authentication.getPrincipal();
+		PrincipalDetails principal = (PrincipalDetails) authentication.getPrincipal();
 		Map<String, Object> attributes = principal.getAttributes();
 		OAuth2AuthenticationToken authToken = (OAuth2AuthenticationToken)authentication;
 
 		ProviderType providerType = ProviderType.valueOf(authToken.getAuthorizedClientRegistrationId().toUpperCase());
 
-		String email = (String) ((Map<String, Object>) principal.getAttributes().get(providerType)).get("email");
+		//String email = (String) ((Map<String, Object>) principal.getAttributes().get(providerType)).get("email");
+		String email = "null";
+		Map<String, Object> providerData = (Map<String, Object>) principal.getAttributes().get(providerType);
+		if (providerData != null) {
+			email = (String) providerData.get("email");
+		} else {
+			// Handle the case where providerData is null
+		}
+
 		String nextPageUrl = getNextPageUrl(request);
 
 		String url = makeRedirectUrl(email, nextPageUrl, providerType);
@@ -75,15 +85,15 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 		String providerUrl = "/google";
 
 		if (nextPageUrl == null) {
-			nextPageUrl = "http://localhost:5500/";
+			nextPageUrl = "http://localhost:8080/";
 		}
 
 		String accessToken = jwtProvider.generateAccessToken(email);
-		if(providerType.equals("NAVER")){
+		if(providerType.equals(ProviderType.NAVER)){
 			providerUrl = "/naver";
 		}
-		else if(providerType.equals("KAKAO")){
-			providerUrl = "/kako";
+		else if(providerType.equals(ProviderType.KAKAO)){
+			providerUrl = "/kakao";
 		}
 		System.out.println(providerUrl);
 
