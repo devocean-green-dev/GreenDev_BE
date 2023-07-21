@@ -23,6 +23,7 @@ import com.devoceanyoung.greendev.domain.auth.domain.OAuth2UserInfo;
 import com.devoceanyoung.greendev.domain.auth.domain.PrincipalDetails;
 import com.devoceanyoung.greendev.domain.auth.dto.OAuthAttributes;
 import com.devoceanyoung.greendev.domain.member.domain.Member;
+import com.devoceanyoung.greendev.domain.member.domain.RoleType;
 import com.devoceanyoung.greendev.domain.member.repository.MemberRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -64,24 +65,29 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
 	// 혹시 이미 저장된 정보라면, update 처리
 	private Member saveOrUpdate(OAuth2UserInfo oAuth2UserInfo) {
-		String username = oAuth2UserInfo.getProvider() + "_" + oAuth2UserInfo.getProviderId();
+		String username = oAuth2UserInfo.getProvider().toString() + "_" + oAuth2UserInfo.getProviderId();
 		String password = oAuth2UserInfo.getName() + "_"+ oAuth2UserInfo.getEmail();
 		//String encodedPassword = passwordEncoder.encode(password);
 		String encodedPassword = password;
 		Member member = memberRepository.findByEmail(oAuth2UserInfo.getEmail())
 			.map(entity -> {
-				entity.updateMember(oAuth2UserInfo.getEmail(), oAuth2UserInfo.getName() ,oAuth2UserInfo.getProfileImageUrl());
-				return memberRepository.findByEmail(oAuth2UserInfo.getEmail()).get();
+				entity.updateMember(oAuth2UserInfo.getEmail(), oAuth2UserInfo.getName(), oAuth2UserInfo.getProfileImageUrl());
+				return entity;
 			})
-			.orElse(Member.builder()
-				.nickname(oAuth2UserInfo.getName())
-				.email(oAuth2UserInfo.getEmail())
-				.password(encodedPassword)
-				.profileImageUrl(oAuth2UserInfo.getProfileImageUrl())
-				.username(username)
-				.build());
+			.orElseGet(() ->
+				Member.builder()
+					.nickname(oAuth2UserInfo.getName())
+					.email(oAuth2UserInfo.getEmail())
+					.password(encodedPassword)
+					.profileImageUrl(oAuth2UserInfo.getProfileImageUrl())
+					.username(username)
+					.providerType(oAuth2UserInfo.getProvider())
+					.roleType(RoleType.USER)
+					.build()
+			);
 
 		return memberRepository.save(member);
+
 	}
 
 
