@@ -30,23 +30,20 @@ public class Member extends BaseTimeEntity {
 	@Column(name = "email", nullable = false)
 	private String email;
 
-	@Column(name = "profile_image_url", nullable = false)
+	@Column(name = "profile_image_url")
 	private String profileImageUrl;
 
-	@Column(nullable = false, length = 16)
+	@Column(length = 50)
 	private String nickname;// 닉네임 변경 불가
 
-	@NotNull(message = "비밀번호는 필수로 입력되어야 합니다.")
 	private String password;
 
 	@Column(length = 20)
 	@Enumerated(EnumType.STRING)
-	@NotNull
 	private ProviderType providerType;
 
 	@Column(length = 20)
 	@Enumerated(EnumType.STRING)
-	@NotNull
 	private RoleType roleType;
 
 	@Builder
