@@ -9,14 +9,19 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.aspectj.apache.bcel.generic.FieldGenOrMethodGen;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import com.devoceanyoung.greendev.domain.auth.domain.GoogleUserInfo;
+import com.devoceanyoung.greendev.domain.auth.domain.KakaoUserInfo;
+import com.devoceanyoung.greendev.domain.auth.domain.NaverUserInfo;
 import com.devoceanyoung.greendev.domain.auth.domain.PrincipalDetails;
 import com.devoceanyoung.greendev.domain.member.domain.ProviderType;
 import com.devoceanyoung.greendev.global.jwt.JwtProvider;
@@ -35,22 +40,36 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 	@Override
 	public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
 		Authentication authentication) throws IOException {
-
-		//DefaultOAuth2User principal = (DefaultOAuth2User) authentication.getPrincipal();
-		PrincipalDetails principal = (PrincipalDetails) authentication.getPrincipal();
-		Map<String, Object> attributes = principal.getAttributes();
+		OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
+		Map<String, Object> attributes = oAuth2User.getAttributes();
 		OAuth2AuthenticationToken authToken = (OAuth2AuthenticationToken)authentication;
 
 		ProviderType providerType = ProviderType.valueOf(authToken.getAuthorizedClientRegistrationId().toUpperCase());
 
-		//String email = (String) ((Map<String, Object>) principal.getAttributes().get(providerType)).get("email");
 		String email = "null";
-		Map<String, Object> providerData = (Map<String, Object>) principal.getAttributes().get(providerType);
-		if (providerData != null) {
-			email = (String) providerData.get("email");
-		} else {
-			// Handle the case where providerData is null
+		if (providerType.equals(ProviderType.KAKAO)) {
+			KakaoUserInfo kakaoUserInfo = new KakaoUserInfo(attributes);
+			email = kakaoUserInfo.getEmail();
+			System.out.println("kakao");
+			System.out.println(email);
 		}
+		else if(providerType.equals(ProviderType.NAVER)){
+			NaverUserInfo naverUserInfo = new NaverUserInfo(attributes);
+			email = naverUserInfo.getEmail();
+		}
+		else if(providerType.equals(ProviderType.GOOGLE)){
+			GoogleUserInfo googleUserInfo = new GoogleUserInfo(attributes);
+			email = googleUserInfo.getEmail();
+		}
+		else {
+			Map<String, Object> providerData = (Map<String, Object>) attributes.get(providerType.name().toLowerCase());
+			if (providerData != null) {
+				email = (String) providerData.get("email");
+			} else {
+				// Handle the case where providerData is null
+			}
+		}
+
 
 		String nextPageUrl = getNextPageUrl(request);
 
@@ -82,23 +101,15 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 	}
 
 	private String makeRedirectUrl(String email, String nextPageUrl, ProviderType providerType) {
-		String providerUrl = "/google";
 
 		if (nextPageUrl == null) {
-			nextPageUrl = "http://localhost:8080/";
+			nextPageUrl = "http://localhost:5500/";
 		}
 
 		String accessToken = jwtProvider.generateAccessToken(email);
-		if(providerType.equals(ProviderType.NAVER)){
-			providerUrl = "/naver";
-		}
-		else if(providerType.equals(ProviderType.KAKAO)){
-			providerUrl = "/kakao";
-		}
-		System.out.println(providerUrl);
+		System.out.println(accessToken);
 
-
-		return UriComponentsBuilder.fromHttpUrl(nextPageUrl +"login/oauth2/code" + providerUrl)
+		return UriComponentsBuilder.fromHttpUrl(nextPageUrl)
 			.queryParam("accessToken", accessToken)
 			.queryParam("nextPageUrl", nextPageUrl)
 			.build()
