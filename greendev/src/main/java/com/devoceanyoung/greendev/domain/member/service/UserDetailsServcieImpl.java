@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import com.devoceanyoung.greendev.domain.member.domain.Member;
 import com.devoceanyoung.greendev.domain.member.domain.MemberAdapter;
 import com.devoceanyoung.greendev.domain.member.repository.MemberRepository;
+import com.devoceanyoung.greendev.global.exception.customException.MemberNotFoundException;
 
 import lombok.RequiredArgsConstructor;
 
@@ -18,9 +19,10 @@ public class UserDetailsServcieImpl implements UserDetailsService {
 		memberRepository;
 
 	@Override
-	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-		Member member = memberRepository.findByUsername(username).orElseThrow(
-			() -> new UsernameNotFoundException(username));
+	public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+		System.out.println(email);
+		Member member = memberRepository.findByEmail(email).orElseThrow(
+			MemberNotFoundException::new);
 
 		// UserDetails를 반환한다.
 		return new MemberAdapter(member);
