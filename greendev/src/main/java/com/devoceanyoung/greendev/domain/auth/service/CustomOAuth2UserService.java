@@ -25,6 +25,7 @@ import com.devoceanyoung.greendev.domain.auth.dto.OAuthAttributes;
 import com.devoceanyoung.greendev.domain.member.domain.Member;
 import com.devoceanyoung.greendev.domain.member.domain.RoleType;
 import com.devoceanyoung.greendev.domain.member.repository.MemberRepository;
+import com.devoceanyoung.greendev.global.exception.customException.MemberNotFoundException;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -45,7 +46,6 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 		OAuth2UserInfo oAuth2UserInfo = null;
 
 		String provider = userRequest.getClientRegistration().getRegistrationId();
-		System.out.println(provider);
 
 		if(provider.equals("google")) {
 			log.info("구글 로그인 요청");
@@ -69,26 +69,36 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 		String password = oAuth2UserInfo.getName() + "_"+ oAuth2UserInfo.getEmail();
 		//String encodedPassword = passwordEncoder.encode(password);
 		String encodedPassword = password;
-		Member member = memberRepository.findByEmail(oAuth2UserInfo.getEmail())
+
+		Member member = memberRepository.findByUsername(username)
 			.map(entity -> {
 				entity.updateMember(oAuth2UserInfo.getEmail(), oAuth2UserInfo.getName(), oAuth2UserInfo.getProfileImageUrl());
 				return entity;
 			})
-			.orElseGet(() ->
-				Member.builder()
-					.nickname(oAuth2UserInfo.getName())
-					.email(oAuth2UserInfo.getEmail())
-					.password(encodedPassword)
-					.profileImageUrl(oAuth2UserInfo.getProfileImageUrl())
-					.username(username)
-					.providerType(oAuth2UserInfo.getProvider())
-					.roleType(RoleType.USER)
-					.build()
-			);
+			.orElseGet(() -> {
+				if (!memberRepository.existsByEmail(oAuth2UserInfo.getEmail())) {
+					return Member.builder()
+						.nickname(oAuth2UserInfo.getName())
+						.email(oAuth2UserInfo.getEmail())
+						.password(encodedPassword)
+						.profileImageUrl(oAuth2UserInfo.getProfileImageUrl())
+						.username(username)
+						.providerType(oAuth2UserInfo.getProvider())
+						.roleType(RoleType.USER)
+						.build();
+				} else {
+					return null;
+				}
+			});
+
+		if (member == null) {
+			member = memberRepository.findByEmail(oAuth2UserInfo.getEmail()).orElseThrow(MemberNotFoundException::new);
+			member.updateMember(oAuth2UserInfo.getEmail(), oAuth2UserInfo.getName(), oAuth2UserInfo.getProfileImageUrl());
+		}
 
 		return memberRepository.save(member);
-
 	}
+
 
 
 }
