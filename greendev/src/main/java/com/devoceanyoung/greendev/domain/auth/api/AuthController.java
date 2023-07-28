@@ -19,7 +19,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.devoceanyoung.greendev.domain.auth.dto.AccessTokenDto;
 
 import com.devoceanyoung.greendev.domain.auth.service.AuthService;
-
+import com.devoceanyoung.greendev.global.constant.StatusEnum;
+import com.devoceanyoung.greendev.global.dto.StatusResponse;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,24 +34,32 @@ public class AuthController {
 	private final AuthService authService;
 
 	@PostMapping("/blacklist")
-	public ResponseEntity<AccessTokenDto> signOut(@RequestBody AccessTokenDto requestDto) {
+	public ResponseEntity<StatusResponse> signOut(@RequestBody AccessTokenDto requestDto) {
 		AccessTokenDto resDto = authService.signOut(requestDto);
 		ResponseCookie responseCookie = removeRefreshTokenCookie();
 
 		return ResponseEntity.ok()
 			.header(SET_COOKIE, responseCookie.toString())
-			.body(resDto);
+			.body(StatusResponse.builder()
+					.status(StatusEnum.OK.getStatusCode())
+					.message(StatusEnum.OK.getCode())
+					.data(resDto)
+					.build());
+
 	}
 
 	@PostMapping("/refresh")
-	public ResponseEntity<AccessTokenDto> refresh(@CookieValue(value = "refreshToken", required = false) Cookie rtCookie) {
+	public ResponseEntity<StatusResponse> refresh(@CookieValue(value = "refreshToken", required = false) Cookie rtCookie) {
 
 		String refreshToken = rtCookie.getValue();
 
 		AccessTokenDto resDto = authService.refresh(refreshToken);
 
-		return ResponseEntity.ok()
-			.body(resDto);
+		return ResponseEntity.ok(StatusResponse.builder()
+			.status(StatusEnum.OK.getStatusCode())
+			.message(StatusEnum.OK.getCode())
+			.data(resDto)
+			.build());
 	}
 
 
