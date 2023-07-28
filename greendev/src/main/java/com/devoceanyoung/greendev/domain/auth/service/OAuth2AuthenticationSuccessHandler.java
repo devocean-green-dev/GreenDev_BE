@@ -70,7 +70,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 		else {
 			Map<String, Object> providerData = (Map<String, Object>) attributes.get(providerType.name().toLowerCase());
 			if (providerData != null) {
-				email = (String) providerData.get("email");
+				email = providerData.get("email").toString();
 			} else {
 				// Handle the case where providerData is null
 			}
@@ -79,8 +79,9 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 
 		String targetUrl = determineTargetUrl(request, response, authentication);
 		log.info("targetUrl = " + targetUrl);
+
 		String url = makeRedirectUrl(email, targetUrl);
-		System.out.println(url);
+
 		ResponseCookie responseCookie = generateRefreshTokenCookie(email);
 		response.setHeader("Set-Cookie", responseCookie.toString());
 		response.getWriter().write(url);
@@ -100,10 +101,10 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 		if (redirectUrl.equals(getDefaultTargetUrl())) {
 			redirectUrl = "http://localhost:5500";
 		}
-		System.out.println(redirectUrl);
+		log.info(redirectUrl);
 
 		String accessToken = jwtProvider.generateAccessToken(email);
-		System.out.println(accessToken);
+		log.info(accessToken);
 
 		return UriComponentsBuilder.fromHttpUrl(redirectUrl)
 			.path("/oauth2/redirect")
@@ -131,6 +132,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 	public ResponseCookie generateRefreshTokenCookie(String email) {
 		String refreshToken = jwtProvider.generateRefreshToken(email);
 		Long refreshTokenValidationMs = jwtProvider.getRefreshTokenValidationMs();
+		log.info(refreshToken);
 
 		redisService.setData("RefreshToken:" + email, refreshToken, refreshTokenValidationMs);
 
