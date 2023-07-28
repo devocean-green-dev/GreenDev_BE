@@ -8,18 +8,50 @@ import com.devoceanyoung.greendev.domain.member.domain.ProviderType;
 
 import lombok.AllArgsConstructor;
 
-@AllArgsConstructor
 public class GoogleUserInfo implements OAuth2UserInfo {
 
-	private final Map<String, Object> attributes;
+	public static final String REGISTRATION_ID = "google";
 
-	public GoogleUserInfo(OAuth2User oAuth2User) {
-		this.attributes = oAuth2User.getAttributes();
+	private static final String PROVIDER_ID = "sub";
+
+	private static final String EMAIL = "email";
+	private static final String PROFILE = "picture";
+
+	private Map<String, Object> attributes;
+
+	public GoogleUserInfo(Map<String, Object> attributes) {
+		this.attributes = attributes;
 	}
 
 	@Override
 	public String getProviderId() {
-		return (String) attributes.get("sub");
+		return attributes.get(PROVIDER_ID).toString();
+	}
+
+	@Override
+	public String getRegistrationId() {
+		return REGISTRATION_ID;
+	}
+
+	@Override
+	public String getEmail() {
+		return attributes.get(EMAIL).toString();
+	}
+
+	@Override
+	public String getNickname() {
+		String email = getEmail();
+		return email.substring(0, email.indexOf("@"));
+	}
+
+	@Override
+	public String getName() {
+		return REGISTRATION_ID + "_" + getProviderId();
+	}
+
+	@Override
+	public Map<String, Object> getAttributes() {
+		return attributes;
 	}
 
 	@Override
@@ -28,17 +60,8 @@ public class GoogleUserInfo implements OAuth2UserInfo {
 	}
 
 	@Override
-	public String getEmail() {
-		return (String) attributes.get("email");
-	}
-
-	@Override
-	public String getName() {
-		return (String) attributes.get("name");
-	}
-	@Override
 	public String getProfileImageUrl(){
-		return (String) attributes.get("picture");
+		return attributes.get(PROFILE).toString();
 	}
 
 
