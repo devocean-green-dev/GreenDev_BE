@@ -64,13 +64,13 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
 		Member member = memberRepository.findByUsername(oAuth2UserInfo.getName())
 			.map(entity -> {
-				entity.updateMember(oAuth2UserInfo.getEmail(), oAuth2UserInfo.getNickname(), oAuth2UserInfo.getProfileImageUrl());
+				entity.updateMember(oAuth2UserInfo.getEmail());
 				return entity;
 			})
 			.orElseGet(() -> {
 				if (!memberRepository.existsByEmail(oAuth2UserInfo.getEmail())) {
 					return Member.builder()
-						.nickname(oAuth2UserInfo.getName())
+						.nickname(oAuth2UserInfo.getNickname())
 						.email(oAuth2UserInfo.getEmail())
 						.password(encodedPassword)
 						.profileImageUrl(oAuth2UserInfo.getProfileImageUrl())
@@ -85,7 +85,8 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
 		if (member == null) {
 			member = memberRepository.findByEmail(oAuth2UserInfo.getEmail()).orElseThrow(MemberNotFoundException::new);
-			member.updateMember(oAuth2UserInfo.getEmail(), oAuth2UserInfo.getName(), oAuth2UserInfo.getProfileImageUrl());
+			member.updateMember(oAuth2UserInfo.getEmail());
+			return member;
 		}
 
 		return memberRepository.save(member);
