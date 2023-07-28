@@ -21,8 +21,7 @@ import com.devoceanyoung.greendev.domain.member.dto.MemberReqDto;
 import com.devoceanyoung.greendev.domain.member.dto.MemberResDto;
 import com.devoceanyoung.greendev.domain.member.service.MemberService;
 import com.devoceanyoung.greendev.global.constant.StatusEnum;
-import com.devoceanyoung.greendev.global.dto.Message;
-
+import com.devoceanyoung.greendev.global.dto.StatusResponse;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,9 +36,9 @@ public class MemberController {
 	@GetMapping("/me")
 	@PreAuthorize("isAuthenticated()")
 	@ResponseStatus(value = HttpStatus.OK)
-	public ResponseEntity<Message> readMember(@AuthUser Member member) {
+	public ResponseEntity<StatusResponse> readMember(@AuthUser Member member) {
 		MemberResDto response = MemberResDto.of(member);
-		return ResponseEntity.ok(Message.builder()
+		return ResponseEntity.ok(StatusResponse.builder()
 			.status(StatusEnum.OK.getStatusCode())
 			.message(StatusEnum.OK.getCode())
 			.data(response)
@@ -50,10 +49,10 @@ public class MemberController {
 	@PatchMapping("/me")
 	@PreAuthorize("isAuthenticated()")
 	@ResponseStatus(HttpStatus.OK)
-	public ResponseEntity<Message> updateNickname(@AuthUser Member member,
+	public ResponseEntity<StatusResponse> updateNickname(@AuthUser Member member,
 		@RequestBody @Valid final MemberReqDto reqDto) {
 		memberService.update(member.getMemberId(), reqDto);
-		return ResponseEntity.ok(Message.builder()
+		return ResponseEntity.ok(StatusResponse.builder()
 			.status(StatusEnum.OK.getStatusCode())
 			.message(NICKNAME_CHANGE_SUCCESS)
 			.build());
