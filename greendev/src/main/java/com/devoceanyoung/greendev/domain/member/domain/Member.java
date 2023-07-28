@@ -7,7 +7,6 @@ import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.validation.constraints.NotNull;
 
 import com.devoceanyoung.greendev.global.entity.BaseTimeEntity;
 
@@ -34,7 +33,7 @@ public class Member extends BaseTimeEntity {
 	private String profileImageUrl;
 
 	@Column(length = 50)
-	private String nickname;// 닉네임 변경 불가
+	private String nickname;
 
 	private String password;
 
@@ -61,5 +60,9 @@ public class Member extends BaseTimeEntity {
 
 	public void updateMember(String email){
 		this.email = email;
+	}
+
+	public void updateNickname(String nickname){
+		this.nickname = nickname;
 	}
 }
