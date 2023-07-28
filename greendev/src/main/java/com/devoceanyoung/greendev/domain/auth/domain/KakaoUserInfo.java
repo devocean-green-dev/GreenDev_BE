@@ -1,21 +1,40 @@
 package com.devoceanyoung.greendev.domain.auth.domain;
 
+
 import java.util.Map;
 
 import com.devoceanyoung.greendev.domain.member.domain.ProviderType;
 
-import lombok.AllArgsConstructor;
 
-@AllArgsConstructor
 public class KakaoUserInfo implements OAuth2UserInfo{
 
-	private Map<String, Object> attributes;
+	public static final String REGISTRATION_ID = "kakao";
+
+	private static final String PROVIDER_ID = "id";
+	private static final String EMAIL = "email";
+	private static final String NICKNAME = "nickname";
+	private static final String PROFILE = "profile_image_url";
+
+	private static final String KEY = "kakao_account";
+
+	private final Map<String, Object> attributes;
+
+	public KakaoUserInfo(Map<String, Object> attributes) {
+		this.attributes = attributes;
+	}
 
 
 	@Override
 	public String getProviderId() {
-		// Long 타입이기 때문에 toString으로 변호나
-		return attributes.get("id").toString();
+		return attributes.get(PROVIDER_ID).toString();
+	}
+	@Override
+	public String getRegistrationId() {
+		return REGISTRATION_ID;
+	}
+	@Override
+	public Map<String, Object> getAttributes() {
+		return attributes;
 	}
 
 	@Override
@@ -25,28 +44,26 @@ public class KakaoUserInfo implements OAuth2UserInfo{
 
 	@Override
 	public String getEmail() {
-		// kakao_account라는 Map에서 추출
-		//return (String) ((Map) attributes.get("kakao_account")).get("email");
-		//return (String) attributes.get("email");
-		Map<String, Object> kakaoAccount = (Map<String, Object>)attributes.get("kakao_account");
-		return (String) kakaoAccount.get("email");
+		Map<String, Object> kakaoAccount = (Map<String, Object>)attributes.get(KEY);
+		return kakaoAccount.get(EMAIL).toString();
 	}
 
 	@Override
 	public String getName() {
-		// kakao_account라는 Map에서 추출
-		//return (String) ((Map) attributes.get("profile")).get("nickname");
-		Map<String, Object> kakaoAccount = (Map<String, Object>)attributes.get("kakao_account");
+		return REGISTRATION_ID + "_" + this.getProviderId();
+	}
+
+
+	public String getNickname() {
+		Map<String, Object> kakaoAccount = (Map<String, Object>)attributes.get(KEY);
 		Map<String, Object> kakaoProfile = (Map<String, Object>)kakaoAccount.get("profile");
-		return (String) kakaoProfile.get("nickname");
+		return kakaoProfile.get(NICKNAME).toString();
 	}
 
 	@Override
 	public String getProfileImageUrl(){
-
-		//return (String) ((Map) attributes.get("profile")).get("profile_image_url");
-		Map<String, Object> kakaoAccount = (Map<String, Object>)attributes.get("kakao_account");
+		Map<String, Object> kakaoAccount = (Map<String, Object>)attributes.get(KEY);
 		Map<String, Object> kakaoProfile = (Map<String, Object>)kakaoAccount.get("profile");
-		return (String) kakaoProfile.get("profile_image_url");
+		return kakaoProfile.get(PROFILE).toString();
 	}
 }
