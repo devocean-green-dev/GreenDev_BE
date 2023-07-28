@@ -1,8 +1,11 @@
 package com.devoceanyoung.greendev.domain.auth.service;
 
+import static com.devoceanyoung.greendev.domain.auth.service.CookieAuthorizationRequestRepository.*;
+
 import java.io.IOException;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import javax.servlet.http.Cookie;
@@ -26,6 +29,7 @@ import com.devoceanyoung.greendev.domain.auth.domain.PrincipalDetails;
 import com.devoceanyoung.greendev.domain.member.domain.ProviderType;
 import com.devoceanyoung.greendev.global.jwt.JwtProvider;
 import com.devoceanyoung.greendev.global.redis.RedisService;
+import com.devoceanyoung.greendev.global.util.CookieUtils;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,6 +40,7 @@ import lombok.extern.slf4j.Slf4j;
 public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 	private final JwtProvider jwtProvider;
 	private final RedisService redisService;
+	private final CookieAuthorizationRequestRepository CookieAuthorizationRequestRepository;
 
 	@Override
 	public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
@@ -50,16 +55,17 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 		if (providerType.equals(ProviderType.KAKAO)) {
 			KakaoUserInfo kakaoUserInfo = new KakaoUserInfo(attributes);
 			email = kakaoUserInfo.getEmail();
-			System.out.println("kakao");
-			System.out.println(email);
+			log.info("kakao");
 		}
 		else if(providerType.equals(ProviderType.NAVER)){
 			NaverUserInfo naverUserInfo = new NaverUserInfo(attributes);
 			email = naverUserInfo.getEmail();
+			log.info("naver");
 		}
 		else if(providerType.equals(ProviderType.GOOGLE)){
 			GoogleUserInfo googleUserInfo = new GoogleUserInfo(attributes);
 			email = googleUserInfo.getEmail();
+			log.info("google");
 		}
 		else {
 			Map<String, Object> providerData = (Map<String, Object>) attributes.get(providerType.name().toLowerCase());
@@ -71,50 +77,55 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 		}
 
 
-		String nextPageUrl = getNextPageUrl(request);
-
-		String url = makeRedirectUrl(email, nextPageUrl, providerType);
+		String targetUrl = determineTargetUrl(request, response, authentication);
+		log.info("targetUrl = " + targetUrl);
+		String url = makeRedirectUrl(email, targetUrl);
+		System.out.println(url);
 		ResponseCookie responseCookie = generateRefreshTokenCookie(email);
 		response.setHeader("Set-Cookie", responseCookie.toString());
 		response.getWriter().write(url);
+
 
 		if (response.isCommitted()) {
 			logger.info("응답이 이미 커밋된 상태입니다. " + url + "로 리다이렉트하도록 바꿀 수 없습니다.");
 			return;
 		}
-
+		clearAuthenticationAttributes(request, response);
 		getRedirectStrategy().sendRedirect(request, response, url);
 	}
 
-	private String getNextPageUrl(HttpServletRequest request) {
-		Cookie[] cookies = request.getCookies();
-		String nextPageUrl = null;
-		if (cookies != null) {
-			for (Cookie cookie : cookies) {
-				if (cookie.getName().equals("nextPageUrl")) {
-					nextPageUrl = cookie.getValue();
-					break;
-				}
-			}
-		}
-		return nextPageUrl;
-	}
 
-	private String makeRedirectUrl(String email, String nextPageUrl, ProviderType providerType) {
+	private String makeRedirectUrl(String email, String redirectUrl) {
 
-		if (nextPageUrl == null) {
-			nextPageUrl = "http://localhost:5500/";
+		if (redirectUrl.equals(getDefaultTargetUrl())) {
+			redirectUrl = "http://localhost:5500";
 		}
+		System.out.println(redirectUrl);
 
 		String accessToken = jwtProvider.generateAccessToken(email);
 		System.out.println(accessToken);
 
-		return UriComponentsBuilder.fromHttpUrl(nextPageUrl)
+		return UriComponentsBuilder.fromHttpUrl(redirectUrl)
+			.path("/oauth2/redirect")
 			.queryParam("accessToken", accessToken)
-			.queryParam("nextPageUrl", nextPageUrl)
+			.queryParam("redirectUrl", redirectUrl)
 			.build()
 			.encode()
 			.toUriString();
+
+
+	}
+
+	protected String determineTargetUrl(HttpServletRequest request, HttpServletResponse response, Authentication authentication) {
+		Optional<String> redirectUrl = CookieUtils.getCookie(request, REDIRECT_URL_PARAM_COOKIE_KEY).map(Cookie::getValue);
+		String targetUrl = redirectUrl.orElse(getDefaultTargetUrl());
+		return UriComponentsBuilder.fromUriString(targetUrl)
+			.build().toUriString();
+	}
+
+	protected void clearAuthenticationAttributes(HttpServletRequest request, HttpServletResponse response) {
+		super.clearAuthenticationAttributes(request);
+		CookieAuthorizationRequestRepository.removeAuthorizationRequestCookies(request, response);
 	}
 
 	public ResponseCookie generateRefreshTokenCookie(String email) {
@@ -128,7 +139,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 			.domain("greendev.com")
 			.maxAge(TimeUnit.MILLISECONDS.toSeconds(refreshTokenValidationMs)) // 쿠키 만료 시기(초). 없으면 브라우저 닫힐 때 제거
 			.secure(true) // HTTPS로 통신할 때만 쿠키가 전송된다.
-			.sameSite("none")
+			.sameSite("None")
 			.httpOnly(true) // JS를 통한 쿠키 접근을 막아, XSS 공격 등을 방어하기 위한 옵션이다.
 			.build();
 	}
