@@ -2,119 +2,65 @@ package com.devoceanyoung.greendev.domain.auth.api;
 
 import static org.springframework.http.HttpHeaders.*;
 
-import java.util.concurrent.TimeUnit;
-
 import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import javax.validation.Valid;
 
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
+
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
+
 import org.springframework.web.bind.annotation.CookieValue;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
+
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.client.RestTemplate;
 
-import com.devoceanyoung.greendev.domain.auth.AuthUser;
-import com.devoceanyoung.greendev.domain.auth.dto.LoginResDto;
-import com.devoceanyoung.greendev.domain.auth.dto.TokenResDto;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.devoceanyoung.greendev.domain.auth.dto.AccessTokenDto;
+
 import com.devoceanyoung.greendev.domain.auth.service.AuthService;
-import com.devoceanyoung.greendev.domain.member.domain.Member;
-import com.devoceanyoung.greendev.domain.member.domain.RoleType;
+
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-//http://localhost:8880/login/oauth2/code/naver
+
 
 @Slf4j
 @RestController
-@RequestMapping("/login/oauth/code")
+@RequestMapping("/token")
 @RequiredArgsConstructor
 public class AuthController {
 	private final AuthService authService;
-	@Value("${spring.security.oauth2.client.registration.kakao.client-id}")
-	private String clientId;
 
-	@Value("${spring.security.oauth2.client.registration.naver.client-secret}")
-	private String clientSecret;
+	@PostMapping("/blacklist")
+	public ResponseEntity<AccessTokenDto> signOut(@RequestBody AccessTokenDto requestDto) {
+		AccessTokenDto resDto = authService.signOut(requestDto);
+		ResponseCookie responseCookie = removeRefreshTokenCookie();
 
-	@GetMapping("/naver")
-	@ResponseBody
-	public ResponseEntity<LoginResDto> naverOAuthRedirect(@RequestParam String code, @RequestParam String state) {
-
-		RestTemplate rt = new RestTemplate();
-
-		HttpHeaders accessTokenHeaders = new HttpHeaders();
-		accessTokenHeaders.add("Content-type", "application/x-www-form-urlencoded");
-
-		MultiValueMap<String, String> accessTokenParams = new LinkedMultiValueMap<>();
-		accessTokenParams.add("grant_type", "authorization_code");
-		accessTokenParams.add("client_id", clientId);
-		accessTokenParams.add("client_secret", clientSecret);
-		accessTokenParams.add("code" , code);	// 응답으로 받은 코드
-		accessTokenParams.add("state" , state); // 응답으로 받은 상태
-
-		HttpEntity<MultiValueMap<String, String>> accessTokenRequest = new HttpEntity<>(accessTokenParams, accessTokenHeaders);
-
-		ResponseEntity<String> accessTokenResponse = rt.exchange(
-			"https://nid.naver.com/oauth2.0/token",
-			HttpMethod.POST,
-			accessTokenRequest,
-			String.class
-		);
 		return ResponseEntity.ok()
-			//.header(SET_COOKIE, responseCookie.toString())
-			.body(new LoginResDto("test", accessTokenResponse.getBody()));
-
+			.header(SET_COOKIE, responseCookie.toString())
+			.body(resDto);
 	}
-	@GetMapping("/kakao")
-	@ResponseBody
-	public ResponseEntity<LoginResDto> kakaoOAuthRedirect(@RequestParam String code, @RequestParam String state) {
-		// state는 무시하겠습니다.
-		RestTemplate rt = new RestTemplate();
 
-		HttpHeaders accessTokenHeaders = new HttpHeaders();
-		accessTokenHeaders.add("Content-type", "application/x-www-form-urlencoded");
+	@PostMapping("/refresh")
+	public ResponseEntity<AccessTokenDto> refresh(@CookieValue(value = "refreshToken", required = false) Cookie rtCookie) {
 
-		MultiValueMap<String, String> accessTokenParams = new LinkedMultiValueMap<>();
-		accessTokenParams.add("grant_type", "authorization_code");
-		accessTokenParams.add("client_id", clientId);
-		accessTokenParams.add("client_secret", clientSecret);
-		accessTokenParams.add("code" , code);	// 응답으로 받은 코드
-		accessTokenParams.add("state" , state); // 응답으로 받은 상태
+		String refreshToken = rtCookie.getValue();
 
-		HttpEntity<MultiValueMap<String, String>> accessTokenRequest = new HttpEntity<>(accessTokenParams, accessTokenHeaders);
+		AccessTokenDto resDto = authService.refresh(refreshToken);
 
-		ResponseEntity<String> accessTokenResponse = rt.exchange(
-			"https://nid.naver.com/oauth2.0/token",
-			HttpMethod.POST,
-			accessTokenRequest,
-			String.class
-		);
 		return ResponseEntity.ok()
-			//.header(SET_COOKIE, responseCookie.toString())
-			.body(new LoginResDto("test", accessTokenResponse.getBody()));
-
+			.body(resDto);
 	}
 
-	@GetMapping("/test")
-	@ResponseBody
-	public ResponseEntity<String> test(@AuthUser Member member){
-		return ResponseEntity.ok().body(member.getEmail());
 
+	public ResponseCookie removeRefreshTokenCookie() {
+		return ResponseCookie.from("refreshToken", null)
+			.path("/") // 해당 경로 하위의 페이지에서만 쿠키 접근 허용. 모든 경로에서 접근 허용한다.
+			.maxAge(0) // 쿠키의 expiration 타임을 0으로 하여 없앤다.
+			.secure(true) // HTTPS로 통신할 때만 쿠키가 전송된다.
+			.httpOnly(true) // JS를 통한 쿠키 접근을 막아, XSS 공격 등을 방어하기 위한 옵션이다.
+			.build();
 	}
+
 }
