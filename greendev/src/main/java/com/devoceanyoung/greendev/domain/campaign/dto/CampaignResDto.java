@@ -53,12 +53,14 @@ public class CampaignResDto {
 	}
 
 	public static CampaignResDto of(Page<Campaign> campaignPage) {
+		Integer pageCount = campaignPage.getContent().size();
 		return CampaignResDto.builder()
 			.campaigns(campaignPage.getContent().stream()
 				.map(SingleCampaign::of)
 				.collect(Collectors.toList()))
 			.totalPages(campaignPage.getTotalPages())
 			.totalElements(campaignPage.getTotalElements())
+			.count(pageCount)
 			.build();
 	}
 
