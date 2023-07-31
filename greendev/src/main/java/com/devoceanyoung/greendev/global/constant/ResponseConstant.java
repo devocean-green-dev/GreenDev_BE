@@ -7,7 +7,10 @@ public class ResponseConstant {
 
 	//campaign
 	public static final String CAMPAIGN_NOT_FOUND = "해당 캠페인을 찾을 수 없습니다.";
-
-	//삭제
 	public static final String CAMPAIGN_DELETE_SUCCESS = "해당 캠페인을 삭제했습니다.";
+
+	//post
+	public static final String POST_DELETE_SUCCESS = "해당 참여 인증글을 삭제했습니다.";
+	public static final String POST_NOT_FOUND = "해당 글을 찾을 수 없습니다.";
+
 }
