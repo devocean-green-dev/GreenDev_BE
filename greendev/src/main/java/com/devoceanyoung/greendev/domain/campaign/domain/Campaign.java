@@ -15,6 +15,7 @@ import javax.persistence.OneToMany;
 
 import com.devoceanyoung.greendev.domain.campaign.dto.CampaignReqDto;
 import com.devoceanyoung.greendev.domain.member.domain.Member;
+import com.devoceanyoung.greendev.domain.post.domain.Post;
 import com.devoceanyoung.greendev.global.entity.BaseTimeEntity;
 
 import lombok.AccessLevel;
@@ -54,6 +55,9 @@ public class Campaign extends BaseTimeEntity {
 	@JoinColumn(name = "writer_id")
 	private Member writer;
 
+	@OneToMany(mappedBy = "campaign")
+	private List<Post> posts = new ArrayList<>();
+
 	@Builder
 	public Campaign(String title, String date, String description, String category,
 		String campaignimageUrl, Member member) {
@@ -89,6 +93,11 @@ public class Campaign extends BaseTimeEntity {
 		return participations.stream()
 			.mapToLong(Participation::getJoinCount)
 			.sum();
+	}
+
+	public void addPost(Post post) {
+		posts.add(post);
+		post.setCampaign(this);
 	}
 }
 
