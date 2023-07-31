@@ -27,6 +27,7 @@ public class CampaignResDto {
 		private Long campaignId;
 		private String title;
 		private String writer;
+		private String email;
 		private String description;
 		private String category;
 		private Long joinCount;
@@ -38,6 +39,7 @@ public class CampaignResDto {
 			this.campaignId = campaign.getCampaignId();
 			this.title = campaign.getTitle();
 			this.writer = campaign.getWriter().getNickname();
+			this.email = campaign.getWriter().getEmail();
 			this.description = campaign.getDescription();
 			this.date = campaign.getDate();
 			this.campaignImageUrl = campaign.getCampaignimageUrl();

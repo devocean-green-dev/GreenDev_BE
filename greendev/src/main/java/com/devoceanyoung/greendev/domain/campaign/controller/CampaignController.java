@@ -23,6 +23,7 @@ import com.devoceanyoung.greendev.domain.campaign.dto.CampaignReqDto;
 import com.devoceanyoung.greendev.domain.campaign.dto.CampaignResDto;
 import com.devoceanyoung.greendev.domain.campaign.service.CampaignService;
 import com.devoceanyoung.greendev.domain.member.domain.Member;
+import com.devoceanyoung.greendev.domain.post.service.CampaignPostService;
 import com.devoceanyoung.greendev.global.constant.StatusEnum;
 import com.devoceanyoung.greendev.global.dto.StatusResponse;
 
@@ -35,6 +36,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class CampaignController {
 	private final CampaignService campaignService;
+	private final CampaignPostService campaignPostService;
 
 	@GetMapping
 	@PreAuthorize("isAuthenticated()")
@@ -67,7 +69,7 @@ public class CampaignController {
 
 	@PostMapping
 	@PreAuthorize("isAuthenticated()")
-	@ResponseStatus(value = HttpStatus.OK)
+	@ResponseStatus(value = HttpStatus.CREATED)
 	public ResponseEntity<StatusResponse> createCampaign(
 		@AuthUser Member member,
 		@RequestBody CampaignReqDto campaignReqDto) {
@@ -85,10 +87,9 @@ public class CampaignController {
 	@ResponseStatus(value = HttpStatus.OK)
 	@PreAuthorize("isAuthenticated() and (( @campaignService.findById(#campaignId).getWriter().getEmail() == principal.username ) or hasRole('ROLE_USER') or hasRole('ROLE_ADMIN'))")
 	public ResponseEntity<StatusResponse> updateCampaign(
-		@AuthUser Member member,
 		@PathVariable Long campaignId,
 		@RequestBody CampaignReqDto campaignReqDto) {
-		campaignService.update(member, campaignId, campaignReqDto);
+		campaignService.update(campaignId, campaignReqDto);
 		Campaign campaign = campaignService.findById(campaignId);
 		CampaignResDto.SingleCampaign response = CampaignResDto.SingleCampaign.of(campaign);
 		return ResponseEntity.ok(StatusResponse.builder()
@@ -103,7 +104,8 @@ public class CampaignController {
 	@PreAuthorize("isAuthenticated() and (( @campaignService.findById(#campaignId).getWriter().getEmail() == principal.username ) or hasRole('ROLE_USER') or hasRole('ROLE_ADMIN'))")
 	public ResponseEntity<StatusResponse> deleteCampaign(
 		@PathVariable Long campaignId) {
-		campaignService.delete(campaignId);
+		Campaign campaign = campaignPostService.deleteCampaignWithPosts(campaignId);
+		campaignService.delete(campaign);
 		return ResponseEntity.ok(StatusResponse.builder()
 			.status(StatusEnum.OK.getStatusCode())
 			.message(StatusEnum.OK.getCode())

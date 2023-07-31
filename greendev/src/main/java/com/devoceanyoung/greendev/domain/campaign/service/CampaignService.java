@@ -26,13 +26,11 @@ public class CampaignService {
 		return campaign.getCampaignId();
 	}
 
-	public void update(Member member, Long campaignId ,CampaignReqDto reqDto){
+	public void update(Long campaignId ,CampaignReqDto reqDto){
 		Campaign campaign = findById(campaignId);
 		campaign.updateContent(reqDto);
 	}
-
-	public void delete(Long campaignId){
-		Campaign campaign = findById(campaignId);
+	public void delete(Campaign campaign) {
 		campaignRepository.delete(campaign);
 	}
 
@@ -45,4 +43,5 @@ public class CampaignService {
 	public Page<Campaign> findAll(Pageable pageable){
 		return campaignRepository.findAll(pageable);
 	}
+
 }
