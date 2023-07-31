@@ -14,6 +14,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import com.devoceanyoung.greendev.domain.campaign.exception.CampaignNotFoundException;
 import com.devoceanyoung.greendev.global.exception.customException.MemberNotFoundException;
 
 import lombok.extern.slf4j.Slf4j;
@@ -65,8 +66,15 @@ public class GlobalExceptionHandler {
 
 
 	// 존재하지 않는 유저
-	@ExceptionHandler(AccountNotFoundException.class)
+	@ExceptionHandler(MemberNotFoundException.class)
 	protected final ResponseEntity<ErrorResponse> handleMemberNotFoundException(MemberNotFoundException e) {
 		return ErrorResponse.toErrorResponseEntity(ErrorCode.MEMBER_NOT_FOUND, e.getMessage());
 	}
+
+	@ExceptionHandler(CampaignNotFoundException.class)
+	protected final ResponseEntity<ErrorResponse> handleCampaignNotFoundException(CampaignNotFoundException e) {
+		return ErrorResponse.toErrorResponseEntity(ErrorCode.CAMPAIGN_NOT_FOUND, e.getMessage());
+	}
 }
+
+
