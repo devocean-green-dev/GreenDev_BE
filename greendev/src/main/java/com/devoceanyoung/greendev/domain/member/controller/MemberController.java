@@ -2,7 +2,10 @@ package com.devoceanyoung.greendev.domain.member.controller;
 
 import static com.devoceanyoung.greendev.global.constant.ResponseConstant.*;
 
+import java.util.List;
+
 import javax.validation.Valid;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,10 +17,17 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.devoceanyoung.greendev.domain.auth.AuthUser;
+import com.devoceanyoung.greendev.domain.campaign.domain.Campaign;
+import com.devoceanyoung.greendev.domain.campaign.dto.CampaignResDto;
+import com.devoceanyoung.greendev.domain.campaign.service.ParticipationService;
 import com.devoceanyoung.greendev.domain.member.domain.Member;
 import com.devoceanyoung.greendev.domain.member.dto.MemberReqDto;
 import com.devoceanyoung.greendev.domain.member.dto.MemberResDto;
 import com.devoceanyoung.greendev.domain.member.service.MemberService;
+import com.devoceanyoung.greendev.domain.post.domain.Post;
+import com.devoceanyoung.greendev.domain.post.dto.PostCountResDto;
+import com.devoceanyoung.greendev.domain.post.dto.PostResDto;
+import com.devoceanyoung.greendev.domain.post.service.PostService;
 import com.devoceanyoung.greendev.global.constant.StatusEnum;
 import com.devoceanyoung.greendev.global.dto.StatusResponse;
 
@@ -30,6 +40,8 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class MemberController {
 	private final MemberService memberService;
+	private final ParticipationService participationService;
+	private final PostService postService;
 
 	@GetMapping("/me")
 	@PreAuthorize("isAuthenticated()")
@@ -53,4 +65,42 @@ public class MemberController {
 			.message(NICKNAME_CHANGE_SUCCESS)
 			.build());
 	}
+
+	@GetMapping("/campaigns")
+	@PreAuthorize("isAuthenticated()")
+	public ResponseEntity<StatusResponse> readMemberCampaignList(@AuthUser Member member)
+	{
+		List<Campaign> campaignList = participationService.getCampaignsParticipatedByMember(member);
+		CampaignResDto response = CampaignResDto.of(campaignList);
+		return ResponseEntity.ok(StatusResponse.builder()
+			.status(StatusEnum.OK.getStatusCode())
+			.message(StatusEnum.OK.getCode())
+			.data(response)
+			.build());
+	}
+
+	@GetMapping("/posts")
+	@PreAuthorize("isAuthenticated()")
+	public ResponseEntity<StatusResponse> readMemberPostList(@AuthUser Member member){
+		List<Post> postList = postService.getRecentPostsByMember(member);
+		PostResDto response = PostResDto.of(postList);
+		return ResponseEntity.ok(StatusResponse.builder()
+			.status(StatusEnum.OK.getStatusCode())
+			.message(StatusEnum.OK.getCode())
+			.data(response)
+			.build());
+	}
+
+	@GetMapping("/grass")
+	@PreAuthorize("isAuthenticated()")
+	public ResponseEntity<StatusResponse> readMemberGrass(@AuthUser Member member){
+		List<PostCountResDto> response = postService.countRecentPosts(member);
+		return ResponseEntity.ok(StatusResponse.builder()
+			.status(StatusEnum.OK.getStatusCode())
+			.message(StatusEnum.OK.getCode())
+			.data(response)
+			.build());
+	}
+
+
 }

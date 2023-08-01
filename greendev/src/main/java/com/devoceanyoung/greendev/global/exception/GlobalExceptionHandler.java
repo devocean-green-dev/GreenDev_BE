@@ -19,7 +19,6 @@ import com.devoceanyoung.greendev.domain.image.exception.UnsupportedImageExtensi
 import com.devoceanyoung.greendev.domain.image.exception.UnsupportedImageFileTypeException;
 import com.devoceanyoung.greendev.domain.post.exception.PostNotFoundException;
 import com.devoceanyoung.greendev.domain.member.exception.MemberNotFoundException;
-
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
