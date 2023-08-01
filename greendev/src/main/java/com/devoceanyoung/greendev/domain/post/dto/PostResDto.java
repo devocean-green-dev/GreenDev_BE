@@ -7,9 +7,9 @@ import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
 
-import com.devoceanyoung.greendev.domain.campaign.domain.Campaign;
-import com.devoceanyoung.greendev.domain.campaign.dto.CampaignResDto;
 import com.devoceanyoung.greendev.domain.post.domain.Post;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -19,6 +19,7 @@ import lombok.Getter;
 @Getter
 @Builder
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class PostResDto {
 	private List<PostResDto.SinglePost> posts;
 	private Integer count;
@@ -59,6 +60,12 @@ public class PostResDto {
 			.totalPages(postPage.getTotalPages())
 			.totalElements(postPage.getTotalElements())
 			.count(pageCount)
+			.build();
+	}
+	public static PostResDto of(List<Post> postList) {
+		return PostResDto.builder()
+			.posts(postList.stream().map(PostResDto.SinglePost::of).collect(Collectors.toList()))
+			.count(postList.size())
 			.build();
 	}
 }
