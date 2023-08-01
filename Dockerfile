@@ -2,7 +2,7 @@ FROM gradle:8.1.1-jdk11 as builder
 
 WORKDIR /build
 
-COPY greendev/*.graadle ./
+COPY greendev/*.gradle ./
 RUN gradle build --parallel --continue
 
 COPY greendev/* ./
