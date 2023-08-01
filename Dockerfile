@@ -10,7 +10,7 @@ FROM openjdk:11-slim
 
 WORKDIR /app
 
-COPY --from=builder /build/greendev/build/libs/*-SNAPSHOT.jar ./greendev.jar
+COPY --from=builder /build/build/libs/*-SNAPSHOT.jar ./greendev.jar
 
 EXPOSE 8080
 CMD ["java", "-jar", "greendev.jar"]
