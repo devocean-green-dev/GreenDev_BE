@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 import com.devoceanyoung.greendev.domain.member.domain.Member;
 import com.devoceanyoung.greendev.domain.member.domain.MemberAdapter;
 import com.devoceanyoung.greendev.domain.member.repository.MemberRepository;
-import com.devoceanyoung.greendev.global.exception.customException.MemberNotFoundException;
+import com.devoceanyoung.greendev.domain.member.exception.MemberNotFoundException;
 
 import lombok.RequiredArgsConstructor;
 

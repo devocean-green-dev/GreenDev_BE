@@ -47,8 +47,7 @@ public class Post extends BaseTimeEntity {
 	private Member writer;
 
 	@Builder
-	public Post(Long postId, String content, String postImageUrl, LocalDateTime date ,Campaign campaign, Member writer) {
-		this.postId = postId;
+	public Post(String content, String postImageUrl, LocalDateTime date ,Campaign campaign, Member writer) {
 		this.content = content;
 		this.postImageUrl = postImageUrl;
 		this.date = date;

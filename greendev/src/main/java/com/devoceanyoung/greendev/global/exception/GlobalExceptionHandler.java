@@ -4,8 +4,6 @@ import java.time.DateTimeException;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.security.auth.login.AccountNotFoundException;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -15,7 +13,12 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import com.devoceanyoung.greendev.domain.campaign.exception.CampaignNotFoundException;
-import com.devoceanyoung.greendev.global.exception.customException.MemberNotFoundException;
+import com.devoceanyoung.greendev.domain.image.exception.FileNameEmptyException;
+import com.devoceanyoung.greendev.domain.image.exception.FileUploadFailException;
+import com.devoceanyoung.greendev.domain.image.exception.UnsupportedImageExtension;
+import com.devoceanyoung.greendev.domain.image.exception.UnsupportedImageFileTypeException;
+import com.devoceanyoung.greendev.domain.post.exception.PostNotFoundException;
+import com.devoceanyoung.greendev.domain.member.exception.MemberNotFoundException;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -75,6 +78,34 @@ public class GlobalExceptionHandler {
 	protected final ResponseEntity<ErrorResponse> handleCampaignNotFoundException(CampaignNotFoundException e) {
 		return ErrorResponse.toErrorResponseEntity(ErrorCode.CAMPAIGN_NOT_FOUND, e.getMessage());
 	}
+	@ExceptionHandler(PostNotFoundException.class)
+	protected final ResponseEntity<ErrorResponse> handlePostNotFoundException(PostNotFoundException e) {
+		return ErrorResponse.toErrorResponseEntity(ErrorCode.POST_NOT_FOUND, e.getMessage());
+	}
+
+	@ExceptionHandler(UnsupportedImageExtension.class)
+	protected final ResponseEntity<ErrorResponse> handleUnsupportedImageExtension(UnsupportedImageExtension e) {
+		return ErrorResponse.toErrorResponseEntity(ErrorCode.IMAGE_UNSUPPORTED_EXTENSION, e.getMessage());
+	}
+
+	@ExceptionHandler(UnsupportedImageFileTypeException.class)
+	protected final ResponseEntity<ErrorResponse> handleUnsupportedImageFileTypeException(UnsupportedImageFileTypeException e) {
+		return ErrorResponse.toErrorResponseEntity(ErrorCode.IMAGE_UNSUPPORTED_FILETYPE, e.getMessage());
+	}
+
+	@ExceptionHandler(FileNameEmptyException.class)
+	protected final ResponseEntity<ErrorResponse> handleFileNameEmptyException(FileNameEmptyException e) {
+		return ErrorResponse.toErrorResponseEntity(ErrorCode.FILE_NAME_EMPTY, e.getMessage());
+	}
+
+	@ExceptionHandler(FileUploadFailException.class)
+	protected final ResponseEntity<ErrorResponse> handleFileUploadFailException(FileUploadFailException e) {
+		return ErrorResponse.toErrorResponseEntity(ErrorCode.FILE_UPLOAD_FAILURE, e.getMessage());
+	}
+
+
+
+
 }
 
 

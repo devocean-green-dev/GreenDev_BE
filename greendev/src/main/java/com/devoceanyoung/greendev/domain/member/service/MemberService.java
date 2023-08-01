@@ -6,7 +6,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.devoceanyoung.greendev.domain.member.domain.Member;
 import com.devoceanyoung.greendev.domain.member.dto.MemberReqDto;
 import com.devoceanyoung.greendev.domain.member.repository.MemberRepository;
-import com.devoceanyoung.greendev.global.exception.customException.MemberNotFoundException;
+import com.devoceanyoung.greendev.domain.member.exception.MemberNotFoundException;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

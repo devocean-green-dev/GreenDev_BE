@@ -1,6 +1,8 @@
-package com.devoceanyoung.greendev.domain.campaign.controller;
+package com.devoceanyoung.greendev.domain.campaign.api;
 
 import static com.devoceanyoung.greendev.global.constant.ResponseConstant.*;
+
+import java.net.URI;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -16,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.devoceanyoung.greendev.domain.auth.AuthUser;
 import com.devoceanyoung.greendev.domain.campaign.domain.Campaign;
@@ -40,7 +43,6 @@ public class CampaignController {
 
 	@GetMapping
 	@PreAuthorize("isAuthenticated()")
-	@ResponseStatus(value = HttpStatus.OK)
 	public ResponseEntity<StatusResponse> readCampaignList(
 		Pageable pageable) {
 		Page<Campaign> campaignList = campaignService.findAll(pageable);
@@ -55,7 +57,6 @@ public class CampaignController {
 
 	@GetMapping("/{campaignId}")
 	@PreAuthorize("isAuthenticated()")
-	@ResponseStatus(value = HttpStatus.OK)
 	public ResponseEntity<StatusResponse> readCampaign(
 		@PathVariable Long campaignId) {
 		Campaign campaign = campaignService.findById(campaignId);
@@ -69,18 +70,23 @@ public class CampaignController {
 
 	@PostMapping
 	@PreAuthorize("isAuthenticated()")
-	@ResponseStatus(value = HttpStatus.CREATED)
 	public ResponseEntity<StatusResponse> createCampaign(
 		@AuthUser Member member,
 		@RequestBody CampaignReqDto campaignReqDto) {
 		Long campaignId = campaignService.create(member, campaignReqDto);
 		Campaign campaign = campaignService.findById(campaignId);
 		CampaignResDto.SingleCampaign response = CampaignResDto.SingleCampaign.of(campaign);
-		return ResponseEntity.ok(StatusResponse.builder()
-			.status(StatusEnum.CREATED.getStatusCode())
-			.message(StatusEnum.CREATED.getCode())
-			.data(response)
-			.build());
+		URI location = ServletUriComponentsBuilder.fromCurrentRequest()
+			.path("/{id}")
+			.buildAndExpand(campaign.getCampaignId())
+			.toUri();
+
+		return ResponseEntity.created(location)
+			.body(StatusResponse.builder()
+				.status(StatusEnum.CREATED.getStatusCode())
+				.message(StatusEnum.CREATED.getCode())
+				.data(response)
+				.build());
 	}
 
 	@PatchMapping("/{campaignId}")
