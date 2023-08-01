@@ -1,4 +1,4 @@
-package com.devoceanyoung.greendev.global.exception.customException;
+package com.devoceanyoung.greendev.domain.member.exception;
 
 import static com.devoceanyoung.greendev.global.constant.ResponseConstant.*;
 
