@@ -1,10 +1,10 @@
-FROM gradle:8.1.1-jdk11 as builder
+FROM openjdk:11-slim as builder
 
 WORKDIR /build
 
-COPY greendev/* ./
+COPY greendev/ ./
 COPY config/application.yml ./src/main/resources/application.yml
-RUN gradle build
+RUN ./gradlew build
 
 FROM openjdk:11-slim
 
