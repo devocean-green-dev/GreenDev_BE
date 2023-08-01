@@ -4,8 +4,6 @@ import java.time.DateTimeException;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.security.auth.login.AccountNotFoundException;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -20,7 +18,7 @@ import com.devoceanyoung.greendev.domain.image.exception.FileUploadFailException
 import com.devoceanyoung.greendev.domain.image.exception.UnsupportedImageExtension;
 import com.devoceanyoung.greendev.domain.image.exception.UnsupportedImageFileTypeException;
 import com.devoceanyoung.greendev.domain.post.exception.PostNotFoundException;
-import com.devoceanyoung.greendev.global.exception.customException.MemberNotFoundException;
+import com.devoceanyoung.greendev.domain.member.exception.MemberNotFoundException;
 
 import lombok.extern.slf4j.Slf4j;
 
