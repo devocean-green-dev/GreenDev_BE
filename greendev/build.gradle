@@ -35,21 +35,26 @@ dependencies {
     annotationProcessor 'org.projectlombok:lombok'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
 
+    implementation group: 'org.apache.tika', name: 'tika-core', version: '2.4.1'
+
 
     //Security
     implementation 'org.springframework.boot:spring-boot-starter-security'
+    testImplementation 'org.springframework.security:spring-security-test'
 
     //JWT
     implementation("io.jsonwebtoken:jjwt-api:0.11.5")
     implementation("io.jsonwebtoken:jjwt-impl:0.11.5")
     implementation("io.jsonwebtoken:jjwt-jackson:0.11.5")
-    testImplementation 'org.springframework.security:spring-security-test'
 
     //redis
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 
     // oauth2-client 라이브러리
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+
+    //cloud
+    implementation 'org.springframework.cloud:spring-cloud-starter-aws:2.2.6.RELEASE'
 }
 
 tasks.named('test') {
