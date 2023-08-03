@@ -138,7 +138,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 
 		return ResponseCookie.from("refreshToken", refreshToken)
 			.path("/") // 해당 경로 하위의 페이지에서만 쿠키 접근 허용. 모든 경로에서 접근 허용한다.
-			.domain("greendev.com")
+			.domain("dev-lr.com")
 			.maxAge(TimeUnit.MILLISECONDS.toSeconds(refreshTokenValidationMs)) // 쿠키 만료 시기(초). 없으면 브라우저 닫힐 때 제거
 			.secure(true) // HTTPS로 통신할 때만 쿠키가 전송된다.
 			.sameSite("None")
