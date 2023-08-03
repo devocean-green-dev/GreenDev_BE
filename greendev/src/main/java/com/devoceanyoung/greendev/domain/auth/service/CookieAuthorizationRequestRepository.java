@@ -15,7 +15,7 @@ public class CookieAuthorizationRequestRepository implements
 	AuthorizationRequestRepository<OAuth2AuthorizationRequest> {
 
 	public static final String OAUTH2_AUTHORIZATION_REQUEST_COOKIE_KEY = "oauth2AuthRequest";
-	public static final String REDIRECT_URL_PARAM_COOKIE_KEY = "redirectUrl";
+	public static final String REDIRECT_URL_PARAM_COOKIE_KEY = "redirect_url";
 	private static final int cookieExpireSeconds = 180;
 
 	// 쿠키에 저장된 인증요청 정보 가져옴
