@@ -9,6 +9,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.devoceanyoung.greendev.domain.badge.service.BadgeInstanceService;
 import com.devoceanyoung.greendev.domain.campaign.domain.Campaign;
 import com.devoceanyoung.greendev.domain.campaign.service.CampaignService;
 import com.devoceanyoung.greendev.domain.campaign.service.ParticipationService;
@@ -30,6 +31,7 @@ public class PostService {
 	private final PostRepository postRepository;
 	private final ParticipationService participationService;
 	private final CampaignService campaignService;
+	private final BadgeInstanceService badgeService;
 
 	public Long create(Member member, Long campaignId, PostReqDto postReqDto) {
 
@@ -37,6 +39,8 @@ public class PostService {
 		Post post = postRepository.save(postReqDto.toEntity(member, campaign));
 		campaign.addPost(post);
 		participationService.checkParticipation(member, campaign);
+		badgeService.checkAndAssignBadge(member);
+
 		return post.getPostId();
 	}
 
@@ -94,5 +98,9 @@ public class PostService {
 	public List<Object[]> countPostsByMemberAndDateBetween(Member member, LocalDateTime startDate, LocalDateTime endDate){
 		 return postRepository.countPostsByMemberAndDateBetween(member, startDate, endDate);
 	}
+
+	@Transactional(readOnly = true)
+	public Integer countPostsByWriter(Member writer)
+	{return postRepository.countAllByWriter(writer);}
 
 }

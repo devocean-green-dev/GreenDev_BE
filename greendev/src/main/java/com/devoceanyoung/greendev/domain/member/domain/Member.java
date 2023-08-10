@@ -1,5 +1,6 @@
 package com.devoceanyoung.greendev.domain.member.domain;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -7,7 +8,9 @@ import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.OneToOne;
 
+import com.devoceanyoung.greendev.domain.badge.domain.Profile;
 import com.devoceanyoung.greendev.global.entity.BaseTimeEntity;
 
 import lombok.AccessLevel;
@@ -45,9 +48,13 @@ public class Member extends BaseTimeEntity {
 	@Enumerated(EnumType.STRING)
 	private RoleType roleType;
 
+	@OneToOne(mappedBy = "member", cascade = CascadeType.ALL)
+	private Profile profile;
+
+
 	@Builder
 	public Member(String email, String profileImageUrl, String nickname, String password,
-		ProviderType providerType, RoleType roleType, String username) {
+		ProviderType providerType, RoleType roleType, String username, Profile profile) {
 		this.email = email;
 		this.profileImageUrl = profileImageUrl;
 		this.nickname = nickname;
@@ -55,6 +62,7 @@ public class Member extends BaseTimeEntity {
 		this.providerType = providerType;
 		this.roleType = RoleType.USER;
 		this.username = username;
+		this.profile = new Profile(this);
 
 	}
 
