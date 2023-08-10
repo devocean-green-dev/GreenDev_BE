@@ -16,6 +16,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 	Page<Post> findByCampaign(Campaign campaign, Pageable pageable);
 
 	List<Post> findAllByCampaign(Campaign campaign);
+	Integer countAllByWriter(Member writer);
 
 	@Query("SELECT p FROM Post p WHERE p.writer = :member AND p.date BETWEEN :startDate AND :endDate")
 	List<Post> findByWriterAndDateBetween(Member member, LocalDateTime startDate, LocalDateTime endDate);
