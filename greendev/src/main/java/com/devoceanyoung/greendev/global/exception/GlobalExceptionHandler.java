@@ -12,6 +12,9 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import com.devoceanyoung.greendev.domain.badge.exception.BadgeInstanceNotFoundException;
+import com.devoceanyoung.greendev.domain.badge.exception.BadgeNotFoundException;
+import com.devoceanyoung.greendev.domain.badge.exception.ProfileNotFoundException;
 import com.devoceanyoung.greendev.domain.campaign.exception.CampaignNotFoundException;
 import com.devoceanyoung.greendev.domain.image.exception.FileNameEmptyException;
 import com.devoceanyoung.greendev.domain.image.exception.FileUploadFailException;
@@ -101,6 +104,21 @@ public class GlobalExceptionHandler {
 	protected final ResponseEntity<ErrorResponse> handleFileUploadFailException(FileUploadFailException e) {
 		return ErrorResponse.toErrorResponseEntity(ErrorCode.FILE_UPLOAD_FAILURE, e.getMessage());
 	}
+
+	@ExceptionHandler(ProfileNotFoundException.class)
+	protected final ResponseEntity<ErrorResponse> handleProfileNotFoundException(ProfileNotFoundException e) {
+		return ErrorResponse.toErrorResponseEntity(ErrorCode.PROFILE_NOT_FOUND ,e.getMessage());
+	}
+
+	@ExceptionHandler(BadgeNotFoundException.class)
+	protected final ResponseEntity<ErrorResponse> handleBadgeNotFoundException(BadgeNotFoundException e) {
+		return ErrorResponse.toErrorResponseEntity(ErrorCode.BADGE_NOT_FOUND ,e.getMessage());
+	}
+	@ExceptionHandler(BadgeInstanceNotFoundException.class)
+	protected final ResponseEntity<ErrorResponse> handleBadgeInstanceNotFoundException(BadgeInstanceNotFoundException e) {
+		return ErrorResponse.toErrorResponseEntity(ErrorCode.BADGE_INSTANCE_NOT_FOUND ,e.getMessage());
+	}
+
 
 
 
