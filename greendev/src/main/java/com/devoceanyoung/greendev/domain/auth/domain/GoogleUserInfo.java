@@ -1,12 +1,10 @@
 package com.devoceanyoung.greendev.domain.auth.domain;
-import java.security.Provider;
 import java.util.Map;
 
-import org.springframework.security.oauth2.core.user.OAuth2User;
+
 
 import com.devoceanyoung.greendev.domain.member.domain.ProviderType;
 
-import lombok.AllArgsConstructor;
 
 public class GoogleUserInfo implements OAuth2UserInfo {
 
