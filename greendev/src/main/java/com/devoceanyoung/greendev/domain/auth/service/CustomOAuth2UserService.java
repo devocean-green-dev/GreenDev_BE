@@ -7,6 +7,7 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.devoceanyoung.greendev.domain.auth.domain.GithubUserInfo;
 import com.devoceanyoung.greendev.domain.auth.domain.GoogleUserInfo;
 import com.devoceanyoung.greendev.domain.auth.domain.KakaoUserInfo;
 import com.devoceanyoung.greendev.domain.auth.domain.NaverUserInfo;
@@ -46,6 +47,9 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 		} else if(provider.equals("naver")) {
 			log.info("네이버 로그인 요청");
 			oAuth2UserInfo = new NaverUserInfo( oAuth2User.getAttributes() );
+		} else if(provider.equals("github")) {
+			log.info("깃허브 로그인 요청");
+			oAuth2UserInfo = new GithubUserInfo( oAuth2User.getAttributes() );
 		}
 
 		Member member = saveOrUpdate(oAuth2UserInfo);
