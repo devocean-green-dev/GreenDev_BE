@@ -4,7 +4,6 @@ import static com.devoceanyoung.greendev.domain.auth.service.CookieAuthorization
 
 import java.io.IOException;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
@@ -12,20 +11,18 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.aspectj.apache.bcel.generic.FieldGenOrMethodGen;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
-import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import com.devoceanyoung.greendev.domain.auth.domain.GithubUserInfo;
 import com.devoceanyoung.greendev.domain.auth.domain.GoogleUserInfo;
 import com.devoceanyoung.greendev.domain.auth.domain.KakaoUserInfo;
 import com.devoceanyoung.greendev.domain.auth.domain.NaverUserInfo;
-import com.devoceanyoung.greendev.domain.auth.domain.PrincipalDetails;
 import com.devoceanyoung.greendev.domain.member.domain.ProviderType;
 import com.devoceanyoung.greendev.global.jwt.JwtProvider;
 import com.devoceanyoung.greendev.global.redis.RedisService;
@@ -66,6 +63,11 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 			GoogleUserInfo googleUserInfo = new GoogleUserInfo(attributes);
 			email = googleUserInfo.getEmail();
 			log.info("google");
+		}
+		else if(providerType.equals(ProviderType.GITHUB)){
+			GithubUserInfo githubUserInfo = new GithubUserInfo(attributes);
+			email = githubUserInfo.getEmail();
+			log.info("github");
 		}
 		else {
 			Map<String, Object> providerData = (Map<String, Object>) attributes.get(providerType.name().toLowerCase());
