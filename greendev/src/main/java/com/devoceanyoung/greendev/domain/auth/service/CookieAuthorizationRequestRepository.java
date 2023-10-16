@@ -8,6 +8,7 @@ import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequ
 import org.springframework.stereotype.Component;
 
 import com.devoceanyoung.greendev.global.util.CookieUtils;
+import com.nimbusds.oauth2.sdk.AuthorizationRequest;
 import com.nimbusds.oauth2.sdk.util.StringUtils;
 
 @Component

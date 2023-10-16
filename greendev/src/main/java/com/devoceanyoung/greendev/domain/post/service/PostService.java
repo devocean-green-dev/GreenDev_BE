@@ -1,8 +1,13 @@
 package com.devoceanyoung.greendev.domain.post.service;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
+import java.time.format.DateTimeFormatter;
+
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -61,10 +66,19 @@ public class PostService {
 
 		List<Object[]> postCounts = countPostsByMemberAndDateBetween(member, thirtyDaysAgo, now);
 
-		List<PostCountResDto> result = new ArrayList<>();
+		// Map을 사용하여 DB에서 가져온 데이터 저장
+		Map<String, Long> countMap = new HashMap<>();
 		for (Object[] postCount : postCounts) {
-			result.add(new PostCountResDto(postCount[0].toString(), (Long) postCount[1]));
+			countMap.put(postCount[0].toString(), (Long) postCount[1]);
 		}
+
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+		// 최근 30일 동안의 날짜 리스트 생성 및 PostCountResDto 리스트 생성
+		List<PostCountResDto> result = IntStream.range(0, 30)
+				.mapToObj(i -> now.minusDays(i).format(formatter))
+				.map(date -> new PostCountResDto(date, countMap.getOrDefault(date, 0L)))
+				.collect(Collectors.toList());
 
 		return result;
 	}

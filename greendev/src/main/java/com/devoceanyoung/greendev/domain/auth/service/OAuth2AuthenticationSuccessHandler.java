@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
+import javax.security.auth.message.AuthException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -24,6 +25,7 @@ import com.devoceanyoung.greendev.domain.auth.domain.GoogleUserInfo;
 import com.devoceanyoung.greendev.domain.auth.domain.KakaoUserInfo;
 import com.devoceanyoung.greendev.domain.auth.domain.NaverUserInfo;
 import com.devoceanyoung.greendev.domain.member.domain.ProviderType;
+import com.devoceanyoung.greendev.global.exception.ErrorCode;
 import com.devoceanyoung.greendev.global.jwt.JwtProvider;
 import com.devoceanyoung.greendev.global.redis.RedisService;
 import com.devoceanyoung.greendev.global.util.CookieUtils;
@@ -121,6 +123,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 
 	protected String determineTargetUrl(HttpServletRequest request, HttpServletResponse response, Authentication authentication) {
 		Optional<String> redirectUrl = CookieUtils.getCookie(request, REDIRECT_URL_PARAM_COOKIE_KEY).map(Cookie::getValue);
+
 		String targetUrl = redirectUrl.orElse(getDefaultTargetUrl());
 		return UriComponentsBuilder.fromUriString(targetUrl)
 			.build().toUriString();
@@ -130,6 +133,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 		super.clearAuthenticationAttributes(request);
 		CookieAuthorizationRequestRepository.removeAuthorizationRequestCookies(request, response);
 	}
+
 
 	public ResponseCookie generateRefreshTokenCookie(String email) {
 		String refreshToken = jwtProvider.generateRefreshToken(email);
