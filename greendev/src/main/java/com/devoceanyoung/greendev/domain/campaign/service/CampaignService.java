@@ -44,4 +44,8 @@ public class CampaignService {
 		return campaignRepository.findAll(pageable);
 	}
 
+	@Transactional(readOnly = true)
+	public Page<Campaign> searchCampaign(String content, Pageable pageable) {
+		return campaignRepository.searchCampaigns(content, pageable);
+	}
 }
