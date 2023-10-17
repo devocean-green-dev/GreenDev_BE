@@ -42,9 +42,10 @@ public class CampaignResDto {
 			this.title = campaign.getTitle();
 			this.writer = campaign.getWriter().getNickname();
 			this.email = campaign.getWriter().getEmail();
+			this.category = campaign.getCategory();
 			this.description = campaign.getDescription();
 			this.date = campaign.getDate();
-			this.campaignImageUrl = campaign.getCampaignimageUrl();
+			this.campaignImageUrl = campaign.getCampaignImageUrl();
 			this.joinCount = campaign.getTotalJoinCount();
 			this.joinMemberCount = campaign.getJoinMemberCount();
 		}
