@@ -1,14 +1,15 @@
 package com.devoceanyoung.greendev.domain.auth.service;
 
+import com.devoceanyoung.greendev.domain.auth.dto.RefreshTokenResDto;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+
 import org.springframework.security.core.Authentication;
-import org.springframework.security.crypto.password.PasswordEncoder;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.devoceanyoung.greendev.domain.auth.dto.AccessTokenDto;
-import com.devoceanyoung.greendev.domain.member.repository.MemberRepository;
+
 import com.devoceanyoung.greendev.global.jwt.JwtProvider;
 import com.devoceanyoung.greendev.global.redis.RedisService;
 
@@ -72,4 +73,13 @@ public class AuthService {
 	}
 
 
+	public RefreshTokenResDto getRefreshToken(AccessTokenDto accessTokenDto) {
+		Authentication authentication = jwtProvider.getAuthentication(accessTokenDto.getAccessToken());
+
+		// Redis의 RefreshToken을 가져오면서, 이미 로그아웃된 사용자인 경우 예외 처리
+		String refreshToken = redisService.getRefreshToken(authentication.getName())
+				.orElseThrow(() -> new RuntimeException("RefreshToken NotFound:" + authentication.getName()));
+		Long remainingTime = jwtProvider.getRemainingTime(refreshToken);
+		return new RefreshTokenResDto(refreshToken, remainingTime);
+	}
 }

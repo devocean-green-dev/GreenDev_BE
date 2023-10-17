@@ -39,7 +39,7 @@ import lombok.extern.slf4j.Slf4j;
 public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 	private final JwtProvider jwtProvider;
 	private final RedisService redisService;
-	private final CookieAuthorizationRequestRepository CookieAuthorizationRequestRepository;
+	private final CookieAuthorizationRequestRepository cookieAuthorizationRequestRepository;
 
 	@Override
 	public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
@@ -49,6 +49,38 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 		OAuth2AuthenticationToken authToken = (OAuth2AuthenticationToken)authentication;
 
 		ProviderType providerType = ProviderType.valueOf(authToken.getAuthorizedClientRegistrationId().toUpperCase());
+
+		String email = getEmail(providerType, attributes);
+
+		String targetUrl = determineTargetUrl(request, response, authentication);
+		log.info("targetUrl = " + targetUrl);
+
+		String url = makeRedirectUrl(email, targetUrl);
+
+		response.getWriter().write(url);
+
+
+		if (response.isCommitted()) {
+			logger.info("응답이 이미 커밋된 상태입니다. " + url + "로 리다이렉트하도록 바꿀 수 없습니다.");
+			return;
+		}
+		String refreshToken = generateRefreshToken(email);
+		// 딥링크가 아닐 경우
+		if (!isDeepLink(url)) {
+			// 별도로 API 요청을 통해 refreshToken을 발급
+			ResponseCookie responseCookie = generateRefreshTokenCookie(refreshToken);
+			response.setHeader("Set-Cookie", responseCookie.toString());
+		}
+		clearAuthenticationAttributes(request, response);
+		getRedirectStrategy().sendRedirect(request, response, url);
+	}
+
+
+	private boolean isDeepLink(String url) {
+		return url.startsWith("greendev://");
+	}
+
+	private String getEmail(ProviderType providerType, Map<String, Object> attributes){
 
 		String email = "null";
 		if (providerType.equals(ProviderType.KAKAO)) {
@@ -79,27 +111,8 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 				// Handle the case where providerData is null
 			}
 		}
-
-
-		String targetUrl = determineTargetUrl(request, response, authentication);
-		log.info("targetUrl = " + targetUrl);
-
-		String url = makeRedirectUrl(email, targetUrl);
-
-		ResponseCookie responseCookie = generateRefreshTokenCookie(email);
-		response.setHeader("Set-Cookie", responseCookie.toString());
-		response.getWriter().write(url);
-
-
-		if (response.isCommitted()) {
-			logger.info("응답이 이미 커밋된 상태입니다. " + url + "로 리다이렉트하도록 바꿀 수 없습니다.");
-			return;
-		}
-		clearAuthenticationAttributes(request, response);
-		getRedirectStrategy().sendRedirect(request, response, url);
+		return email;
 	}
-
-
 	private String makeRedirectUrl(String email, String redirectUrl) {
 
 		if (redirectUrl.equals(getDefaultTargetUrl())) {
@@ -110,13 +123,24 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 		String accessToken = jwtProvider.generateAccessToken(email);
 		log.info(accessToken);
 
-		return UriComponentsBuilder.fromHttpUrl(redirectUrl)
-			.path("/oauth2/redirect")
-			.queryParam("accessToken", accessToken)
-			.queryParam("redirectUrl", redirectUrl)
-			.build()
-			.encode()
-			.toUriString();
+		if (isDeepLink(redirectUrl)) {
+			return UriComponentsBuilder.fromUriString(redirectUrl)
+					.path("/oauth2/redirect")
+					.queryParam("accessToken", accessToken)
+					.queryParam("redirectUrl", redirectUrl)
+					.build()
+					.encode()
+					.toUriString();
+		} else {
+			return UriComponentsBuilder.fromHttpUrl(redirectUrl)
+					.path("/oauth2/redirect")
+					.queryParam("accessToken", accessToken)
+					.queryParam("redirectUrl", redirectUrl)
+					.build()
+					.encode()
+					.toUriString();
+		}
+
 
 
 	}
@@ -131,17 +155,20 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 
 	protected void clearAuthenticationAttributes(HttpServletRequest request, HttpServletResponse response) {
 		super.clearAuthenticationAttributes(request);
-		CookieAuthorizationRequestRepository.removeAuthorizationRequestCookies(request, response);
+		cookieAuthorizationRequestRepository.removeAuthorizationRequestCookies(request, response);
 	}
 
-
-	public ResponseCookie generateRefreshTokenCookie(String email) {
+	public String generateRefreshToken(String email){
 		String refreshToken = jwtProvider.generateRefreshToken(email);
 		Long refreshTokenValidationMs = jwtProvider.getRefreshTokenValidationMs();
 		log.info(refreshToken);
 
 		redisService.setData("RefreshToken:" + email, refreshToken, refreshTokenValidationMs);
+		return refreshToken;
+	}
 
+	public ResponseCookie generateRefreshTokenCookie(String refreshToken) {
+		Long refreshTokenValidationMs = jwtProvider.getRefreshTokenValidationMs();
 		return ResponseCookie.from("refreshToken", refreshToken)
 			.path("/") // 해당 경로 하위의 페이지에서만 쿠키 접근 허용. 모든 경로에서 접근 허용한다.
 			.domain(".dev-lr.com")
