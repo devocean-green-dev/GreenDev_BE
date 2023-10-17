@@ -41,10 +41,10 @@ public class Campaign extends BaseTimeEntity {
 	@Column(columnDefinition = "TEXT") // 길이 제한이 없다.
 	private String description;
 
-	@Column(length = 50)
+	@Column(length = 100)
 	private String category;
 
-	private String campaignimageUrl;
+	private String campaignImageUrl;
 
 	private Integer joinCount;
 
@@ -65,7 +65,7 @@ public class Campaign extends BaseTimeEntity {
 		this.date = date;
 		this.description = description;
 		this.category = category;
-		this.campaignimageUrl = campaignimageUrl;
+		this.campaignImageUrl = campaignimageUrl;
 		this.writer = member;
 		this.joinCount = 0;
 	}
@@ -75,7 +75,7 @@ public class Campaign extends BaseTimeEntity {
 		this.description= reqDto.getDescription();
 		this.date = reqDto.getDate();
 		this.category = reqDto.getCategory();
-		this.campaignimageUrl = reqDto.getImageUrl();
+		this.campaignImageUrl = reqDto.getImageUrl();
 	}
 
 	public void increaseJoinCount() {
