@@ -6,6 +6,7 @@ import java.util.List;
 
 import javax.validation.Valid;
 
+import com.devoceanyoung.greendev.domain.post.dto.PostRecentResDto;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,7 +27,6 @@ import com.devoceanyoung.greendev.domain.member.dto.MemberResDto;
 import com.devoceanyoung.greendev.domain.member.service.MemberService;
 import com.devoceanyoung.greendev.domain.post.domain.Post;
 import com.devoceanyoung.greendev.domain.post.dto.PostCountResDto;
-import com.devoceanyoung.greendev.domain.post.dto.PostResDto;
 import com.devoceanyoung.greendev.domain.post.service.PostService;
 import com.devoceanyoung.greendev.global.constant.StatusEnum;
 import com.devoceanyoung.greendev.global.dto.StatusResponse;
@@ -83,7 +83,7 @@ public class MemberController {
 	@PreAuthorize("isAuthenticated()")
 	public ResponseEntity<StatusResponse> readMemberPostList(@AuthUser Member member){
 		List<Post> postList = postService.getRecentPostsByMember(member);
-		PostResDto response = PostResDto.of(postList);
+		PostRecentResDto response = PostRecentResDto.of(postList);
 		return ResponseEntity.ok(StatusResponse.builder()
 			.status(StatusEnum.OK.getStatusCode())
 			.message(StatusEnum.OK.getCode())
