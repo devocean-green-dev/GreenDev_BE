@@ -20,8 +20,6 @@ import java.util.stream.Collectors;
 public class PostRecentResDto {
     private List<PostRecentResDto.SinglePost> posts;
     private Integer count;
-    private Integer totalPages;
-    private Long totalElements;
 
     @Getter
     public static class SinglePost{// 단일 참여글
@@ -52,17 +50,6 @@ public class PostRecentResDto {
         }
     }
 
-    public static PostRecentResDto of(Page<Post> postPage) {
-        Integer pageCount = postPage.getContent().size();
-        return PostRecentResDto.builder()
-                .posts(postPage.getContent().stream()
-                        .map(PostRecentResDto.SinglePost::of)
-                        .collect(Collectors.toList()))
-                .totalPages(postPage.getTotalPages())
-                .totalElements(postPage.getTotalElements())
-                .count(pageCount)
-                .build();
-    }
     public static PostRecentResDto of(List<Post> postList) {
         return PostRecentResDto.builder()
                 .posts(postList.stream().map(PostRecentResDto.SinglePost::of).collect(Collectors.toList()))
