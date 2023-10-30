@@ -4,8 +4,11 @@ import static com.devoceanyoung.greendev.global.constant.ResponseConstant.*;
 
 import java.net.URI;
 
+import java.time.LocalDate;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -46,6 +49,19 @@ public class CampaignController {
 			.build());
 	}
 
+	@GetMapping("/dates")
+	public ResponseEntity<StatusResponse> readDateFilteredCampaignList(
+			@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+			@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+			Pageable pageable) {
+		Page<Campaign> campaignList = campaignService.findCampaignsByDateRange(startDate, endDate, pageable);
+		CampaignResDto response = CampaignResDto.of(campaignList);
+		return ResponseEntity.ok(StatusResponse.builder()
+				.status(StatusEnum.OK.getStatusCode())
+				.message(StatusEnum.OK.getCode())
+				.data(response)
+				.build());
+	}
 
 	@GetMapping("/{campaignId}")
 	@PreAuthorize("isAuthenticated()")
@@ -116,6 +132,21 @@ public class CampaignController {
 			@RequestParam String content,
 			Pageable pageable) {
 		Page<Campaign> campaignList = campaignService.searchCampaign(content, pageable);
+		CampaignResDto response = CampaignResDto.of(campaignList);
+		return ResponseEntity.ok(StatusResponse.builder()
+				.status(StatusEnum.OK.getStatusCode())
+				.message(StatusEnum.OK.getCode())
+				.data(response)
+				.build());
+	}
+
+	@GetMapping("/search/dates")
+	public ResponseEntity<StatusResponse> searchDateFilteredCampaignList(
+			@RequestParam(required = false) String content,
+			@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+			@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+			Pageable pageable) {
+		Page<Campaign> campaignList = campaignService.searchDateFilteredCampaign(content, startDate, endDate, pageable);
 		CampaignResDto response = CampaignResDto.of(campaignList);
 		return ResponseEntity.ok(StatusResponse.builder()
 				.status(StatusEnum.OK.getStatusCode())

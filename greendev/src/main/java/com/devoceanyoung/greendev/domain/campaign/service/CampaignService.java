@@ -1,5 +1,7 @@
 package com.devoceanyoung.greendev.domain.campaign.service;
 
+import java.time.LocalDate;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -35,6 +37,11 @@ public class CampaignService {
 	}
 
 	@Transactional(readOnly = true)
+	public Page<Campaign> searchDateFilteredCampaign(String content, LocalDate startDate, LocalDate endDate, Pageable pageable){
+		return campaignRepository.searchCampaignsAndDateRange(content, startDate, endDate, pageable);
+	}
+
+	@Transactional(readOnly = true)
 	public Campaign findById(Long campaignId){
 		return campaignRepository.findById(campaignId).orElseThrow(CampaignNotFoundException::new);
 	}
@@ -47,5 +54,10 @@ public class CampaignService {
 	@Transactional(readOnly = true)
 	public Page<Campaign> searchCampaign(String content, Pageable pageable) {
 		return campaignRepository.searchCampaigns(content, pageable);
+	}
+
+	@Transactional(readOnly = true)
+	public Page<Campaign> findCampaignsByDateRange(LocalDate startDate, LocalDate endDate, Pageable pageable){
+		return campaignRepository.findByStartDateBetween(startDate, endDate, pageable);
 	}
 }
