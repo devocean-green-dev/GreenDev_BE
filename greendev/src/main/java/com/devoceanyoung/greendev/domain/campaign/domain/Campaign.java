@@ -1,5 +1,7 @@
 package com.devoceanyoung.greendev.domain.campaign.domain;
 
+import com.devoceanyoung.greendev.global.util.DateRangeConverter;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -38,6 +40,9 @@ public class Campaign extends BaseTimeEntity {
 	@Column(length = 50)
 	private String date;
 
+	private LocalDate startDate;
+	private LocalDate endDate;
+
 	@Column(columnDefinition = "TEXT") // 길이 제한이 없다.
 	private String description;
 
@@ -59,21 +64,24 @@ public class Campaign extends BaseTimeEntity {
 	private List<Post> posts = new ArrayList<>();
 
 	@Builder
-	public Campaign(String title, String date, String description, String category,
-		String campaignimageUrl, Member member) {
+	public Campaign(String title, LocalDate startDate, LocalDate endDate, String description, String category,
+					String campaignImageUrl, Member member) {
 		this.title = title;
-		this.date = date;
+		this.startDate = startDate;
+		this.endDate = endDate;
 		this.description = description;
 		this.category = category;
-		this.campaignImageUrl = campaignimageUrl;
+		this.campaignImageUrl = campaignImageUrl;
 		this.writer = member;
 		this.joinCount = 0;
 	}
 
 	public void updateContent(final CampaignReqDto reqDto){
+		LocalDate[] localDates = DateRangeConverter.toLocalDateArray(reqDto.getDate());
 		this.title = reqDto.getTitle();
 		this.description= reqDto.getDescription();
-		this.date = reqDto.getDate();
+		this.startDate = localDates[0];
+		this.endDate = localDates[1];
 		this.category = reqDto.getCategory();
 		this.campaignImageUrl = reqDto.getImageUrl();
 	}
