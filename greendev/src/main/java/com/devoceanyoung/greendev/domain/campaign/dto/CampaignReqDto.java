@@ -1,5 +1,8 @@
 package com.devoceanyoung.greendev.domain.campaign.dto;
 
+import com.devoceanyoung.greendev.global.util.DateRangeConverter;
+import java.time.LocalDate;
+
 import javax.validation.constraints.NotBlank;
 
 import com.devoceanyoung.greendev.domain.campaign.domain.Campaign;
@@ -17,6 +20,7 @@ public class CampaignReqDto {
 	private String title;
 
 	private String description;
+
 	private String date;
 	private String category;
 	private String imageUrl;
@@ -31,12 +35,13 @@ public class CampaignReqDto {
 	}
 
 	public Campaign toEntity(Member member){
+		LocalDate[] localDates = DateRangeConverter.toLocalDateArray(date);
 		return Campaign.builder()
 			.title(title)
 			.description(description)
-			.date(date)
+			.startDate(localDates[0]).endDate(localDates[1])
 			.category(category)
-			.campaignimageUrl(imageUrl)
+			.campaignImageUrl(imageUrl)
 			.member(member)
 			.build();
 	}
