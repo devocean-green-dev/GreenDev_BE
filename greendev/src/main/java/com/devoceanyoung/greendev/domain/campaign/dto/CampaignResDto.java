@@ -1,6 +1,7 @@
 package com.devoceanyoung.greendev.domain.campaign.dto;
 
-import java.time.LocalDateTime;
+import com.devoceanyoung.greendev.global.util.DateRangeConverter;
+
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -44,7 +45,7 @@ public class CampaignResDto {
 			this.email = campaign.getWriter().getEmail();
 			this.category = campaign.getCategory();
 			this.description = campaign.getDescription();
-			this.date = campaign.getDate();
+			this.date = DateRangeConverter.toString(campaign.getStartDate(), campaign.getEndDate());
 			this.campaignImageUrl = campaign.getCampaignImageUrl();
 			this.joinCount = campaign.getTotalJoinCount();
 			this.joinMemberCount = campaign.getJoinMemberCount();
