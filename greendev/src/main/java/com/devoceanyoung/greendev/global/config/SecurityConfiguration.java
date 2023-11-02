@@ -1,5 +1,6 @@
 package com.devoceanyoung.greendev.global.config;
 
+import com.google.firebase.auth.FirebaseAuth;
 import java.util.Collections;
 
 import org.springframework.context.annotation.Bean;
@@ -38,6 +39,7 @@ public class SecurityConfiguration {
 	private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
 	private final OAuth2AuthenticationFailureHandler oAuth2AuthenticationFailureHandler;
 
+	private FirebaseAuth firebaseAuth;
 	private final CookieAuthorizationRequestRepository cookieAuthorizationRequestRepository;
 
 	// Spring Security에서 제공하는 비밀번호 암호화 클래스.
