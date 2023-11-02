@@ -1,20 +1,27 @@
 package com.devoceanyoung.greendev.domain.auth.service;
 
-import com.devoceanyoung.greendev.domain.auth.domain.GoogleUserInfo;
+import com.devoceanyoung.greendev.domain.auth.domain.PrincipalDetails;
+import com.devoceanyoung.greendev.domain.auth.dto.AppLoginReqDto;
 import com.devoceanyoung.greendev.domain.auth.dto.FirebaseAuthToken;
 import com.devoceanyoung.greendev.domain.auth.dto.RefreshTokenResDto;
 import com.devoceanyoung.greendev.domain.auth.dto.TokenResDto;
 import com.devoceanyoung.greendev.domain.member.domain.Member;
 import com.devoceanyoung.greendev.domain.member.domain.ProviderType;
 import com.devoceanyoung.greendev.domain.member.domain.RoleType;
+import com.devoceanyoung.greendev.domain.member.exception.MemberNotFoundException;
 import com.devoceanyoung.greendev.domain.member.repository.MemberRepository;
 import com.devoceanyoung.greendev.global.fireabse.FirebaseTokenFilter;
 import com.google.firebase.auth.FirebaseToken;
+import java.util.Optional;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.Authentication;
 
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,11 +39,15 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class AuthService {
 
+	private static final String REFRESH_TOKEN_PREFIX = "RefreshToken:";
+	private static final String BLACKLIST_PREFIX = "BlackList:";
 	private final JwtProvider jwtProvider;
 	private final RedisService redisService;
 	private final FirebaseTokenFilter fireBaseFilter;
 	private final AuthenticationManagerBuilder authenticationManagerBuilder;
 	private final MemberRepository memberRepository;
+
+	private final UserDetailsService userDetailsService;
 
 	public AccessTokenDto signOut(AccessTokenDto requestDto) {
 		// accessToken에서 Authentication 추출하기
@@ -49,8 +60,8 @@ public class AuthService {
 
 		// AccessToken의 남은 시간 추출 후 BlackList에 저장
 		Long remainingTime = jwtProvider.getRemainingTime(accessToken);
-		redisService.setData("BlackList:" + accessToken, "signOut", remainingTime);
-		redisService.deleteData("RefreshToken:" + authentication.getName());
+		redisService.setData(BLACKLIST_PREFIX + accessToken, "signOut", remainingTime);
+		redisService.deleteData(REFRESH_TOKEN_PREFIX + authentication.getName());
 
 		return new AccessTokenDto(accessToken);
 	}
@@ -96,30 +107,15 @@ public class AuthService {
 		return new RefreshTokenResDto(refreshToken, remainingTime);
 	}
 
-    public TokenResDto login(FirebaseAuthToken firebaseAuthToken) {
+    public TokenResDto firebaseLogin(FirebaseAuthToken firebaseAuthToken) {
 		FirebaseToken firebaseToken = fireBaseFilter.verifyToken(firebaseAuthToken.getFirebaseAuthToken());
 		if(!isExistedEmail(firebaseToken.getEmail())){
-			signUp(firebaseToken);
+			firebaseSignUp(firebaseToken);
 		}
-		UsernamePasswordAuthenticationToken authenticationToken = getAuthenticationToken(
-				firebaseToken.getEmail(), firebaseToken.getUid());
-		Authentication authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
-
-		String email = authentication.getName();
-
-		String accessToken = jwtProvider.generateAccessToken(email);
-		String refreshToken = jwtProvider.generateRefreshToken(email);
-		Long refreshTokenValidationMs = jwtProvider.getRefreshTokenValidationMs();
-
-		redisService.setData("RefreshToken:" + authentication.getName() , refreshToken, refreshTokenValidationMs);
-		return TokenResDto.builder()
-				.accessToken(accessToken)
-				.refreshToken(refreshToken)
-				.refreshTokenRemaininTime(refreshTokenValidationMs)
-				.build();
+		return generateToken(firebaseToken.getEmail());
     }
 
-	private void signUp(FirebaseToken firebaseToken) {
+	private void firebaseSignUp(FirebaseToken firebaseToken) {
 		String password = firebaseToken.getName() + "_"+ firebaseToken.getEmail();
 		String username = "google" + "_" +firebaseToken.getUid();
 		Member member = Member.builder()
@@ -133,9 +129,59 @@ public class AuthService {
 				.build();
 		memberRepository.save(member);
 	}
+	private Member signUp(String provider, AppLoginReqDto appLoginReqDto){
+		String password = appLoginReqDto.getUsername() + "_"+ appLoginReqDto.getEmail();
+		ProviderType providerType = ProviderType.KAKAO;
+		if(provider.equals("naver")){
+			providerType = ProviderType.NAVER;
+		}
+		Member member = Member.builder()
+				.nickname(appLoginReqDto.getUsername())
+				.email(appLoginReqDto.getEmail())
+				.password(password)
+				.profileImageUrl(appLoginReqDto.getProfileImageUrl())
+				.username(appLoginReqDto.getUsername())
+				.providerType(providerType)
+				.roleType(RoleType.USER)
+				.build();
+		return memberRepository.save(member);
+	}
+
+	public TokenResDto login(String providerType, AppLoginReqDto appLoginReqDto) {
+
+		if(!isExistedEmail(appLoginReqDto.getEmail())) {
+			signUp(providerType, appLoginReqDto);
+		}
+		return generateToken(appLoginReqDto.getEmail());
+	}
+
+	private TokenResDto generateToken(String email) {
+		Member member = findByEmail(email);
+
+		UserDetails userDetails = new PrincipalDetails(member);
+		Authentication authentication =  new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
+
+		SecurityContextHolder.getContext().setAuthentication(authentication);
+		String accessToken = jwtProvider.generateAccessToken(authentication.getName());
+		String refreshToken = jwtProvider.generateRefreshToken(authentication.getName());
+		Long refreshTokenValidationMs = jwtProvider.getRefreshTokenValidationMs();
+
+		redisService.setData(REFRESH_TOKEN_PREFIX + authentication.getName(), refreshToken, refreshTokenValidationMs);
+
+		return TokenResDto.builder()
+				.accessToken(accessToken)
+				.refreshToken(refreshToken)
+				.refreshTokenRemaininTime(refreshTokenValidationMs)
+				.build();
+	}
 
 	@Transactional(readOnly = true)
 	public boolean isExistedEmail(String email){
 		return memberRepository.existsByEmail(email);
+	}
+
+	@Transactional(readOnly = true)
+	public Member findByEmail(String email){
+		return memberRepository.findByEmail(email).orElseThrow(MemberNotFoundException::new);
 	}
 }
