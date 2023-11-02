@@ -12,7 +12,7 @@ public class MemberAdapter extends User { //본 Member에 바로 User을 상속 
 	private Member member;
 
 	public MemberAdapter(Member member) {// TODO:권한 추가시 수정
-		super(member.getEmail(), member.getPassword(), List.of(new SimpleGrantedAuthority("ROLE_USER")));
+		super(member.getEmail(), member.getPassword(), List.of(new SimpleGrantedAuthority("USER")));
 		this.member = member;
 	}
 }
