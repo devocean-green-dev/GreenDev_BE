@@ -52,6 +52,7 @@ dependencies {
 
     // oauth2-client 라이브러리
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+    implementation group: 'com.google.firebase', name: 'firebase-admin', version: '8.0.1'
 
     //cloud
     implementation 'org.springframework.cloud:spring-cloud-starter-aws:2.2.6.RELEASE'
