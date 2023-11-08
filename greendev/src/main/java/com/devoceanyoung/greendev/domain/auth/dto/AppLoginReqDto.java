@@ -14,13 +14,10 @@ public class AppLoginReqDto {
             regexp = "^[\\w!#$%&'*+/=?`{|}~^-]+(?:\\.[\\w!#$%&'*+/=?`{|}~^-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,6}$")
     private String email;
 
-    @NotBlank(message = "닉네임은 필수입니다. ")
     private String nickname;
 
-    @NotBlank(message = "사진은 필수입니다.")
     private String profileImageUrl;
 
-    @NotBlank(message = "username은 필수입니다.")
     private String username;
 
     public AppLoginReqDto(String email, String nickname, String profileImageUrl) {
