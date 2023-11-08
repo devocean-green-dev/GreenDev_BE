@@ -54,7 +54,11 @@ public class NaverUserInfo implements OAuth2UserInfo{
 
 	public String getNickname() {
 		Object nicknameObj = attributes.get(NICKNAME);
-		return nicknameObj == null ? null : nicknameObj.toString();
+		if(nicknameObj == null){
+			String email = getEmail();
+			return email.substring(0, email.indexOf("@"));
+		}
+		return nicknameObj.toString();
 	}
 	@Override
 	public String getProfileImageUrl(){
