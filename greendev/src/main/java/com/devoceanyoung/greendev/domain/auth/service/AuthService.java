@@ -1,5 +1,7 @@
 package com.devoceanyoung.greendev.domain.auth.service;
 
+import static com.devoceanyoung.greendev.global.util.ConstantUtils.BASE_PROFILE_IMAGE;
+
 import com.devoceanyoung.greendev.domain.auth.domain.PrincipalDetails;
 import com.devoceanyoung.greendev.domain.auth.dto.AppLoginReqDto;
 import com.devoceanyoung.greendev.domain.auth.dto.FirebaseAuthToken;
@@ -12,6 +14,7 @@ import com.devoceanyoung.greendev.domain.member.exception.MemberNotFoundExceptio
 import com.devoceanyoung.greendev.domain.member.repository.MemberRepository;
 import com.devoceanyoung.greendev.global.fireabse.FirebaseTokenFilter;
 import com.google.firebase.auth.FirebaseToken;
+import java.util.Map;
 import java.util.Optional;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 
@@ -129,26 +132,34 @@ public class AuthService {
 				.build();
 		memberRepository.save(member);
 	}
-	private Member signUp(String provider, AppLoginReqDto appLoginReqDto){
-		String password = appLoginReqDto.getUsername() + "_"+ appLoginReqDto.getEmail();
-		ProviderType providerType = ProviderType.KAKAO;
-		if(provider.equals("naver")){
-			providerType = ProviderType.NAVER;
-		}
+
+	private static final Map<String, ProviderType> PROVIDER_TYPE_MAP = Map.of(
+			"naver", ProviderType.NAVER,
+			"kakao", ProviderType.KAKAO
+	);
+	private Member signUp(String provider, AppLoginReqDto appLoginReqDto) {
+		String email = appLoginReqDto.getEmail();
+		String nickname = Optional.ofNullable(appLoginReqDto.getNickname())
+				.orElseGet(() -> email.substring(0, email.indexOf("@")));
+		String profileImageUrl = Optional.ofNullable(appLoginReqDto.getProfileImageUrl())
+				.orElse(BASE_PROFILE_IMAGE);
+		String password = appLoginReqDto.getUsername() + "_" + email;
+		ProviderType providerType = PROVIDER_TYPE_MAP.getOrDefault(provider, ProviderType.KAKAO);
+
 		Member member = Member.builder()
-				.nickname(appLoginReqDto.getUsername())
-				.email(appLoginReqDto.getEmail())
+				.nickname(nickname)
+				.email(email)
 				.password(password)
-				.profileImageUrl(appLoginReqDto.getProfileImageUrl())
+				.profileImageUrl(profileImageUrl)
 				.username(appLoginReqDto.getUsername())
 				.providerType(providerType)
 				.roleType(RoleType.USER)
 				.build();
+
 		return memberRepository.save(member);
 	}
 
 	public TokenResDto login(String providerType, AppLoginReqDto appLoginReqDto) {
-
 		if(!isExistedEmail(appLoginReqDto.getEmail())) {
 			signUp(providerType, appLoginReqDto);
 		}
